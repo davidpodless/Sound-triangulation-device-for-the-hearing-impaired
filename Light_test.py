@@ -20,5 +20,5 @@ if __name__ == '__main__':
             break
 
 
-    pixel_ring.off()
+    pixel_ring.wakeup()
     time.sleep(1)
