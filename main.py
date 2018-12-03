@@ -3,19 +3,66 @@ import usb.core
 import usb.util
 import time
 import pyaudio
+import wave
+import numpy as np
+from scipy.io import wavfile
+
+RESPEAKER_RATE = 16000
+RESPEAKER_CHANNELS = 6  # change base on firmwares, 1_channel_firmware.bin as 1 or 6_channels_firmware.bin as 6
+RESPEAKER_WIDTH = 2
+# run getDeviceInfo.py to get index
+RESPEAKER_INDEX = 2  # refer to input device id
+CHUNK = 1024
+RECORD_SECONDS = 1
+WAVE_OUTPUT_FILENAME = "output.wav"
 
 dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
 
-p = pyaudio.PyAudio()
-# info = p.get_host_api_info_by_index(0)
-# numdevices = info.get('deviceCount')
+
+def read_audio():
+    # wave.open()
+    fs, data = wavfile.read('output.wav')
+    return fs, data
+
+
+def record():
+    p = pyaudio.PyAudio()
+
+    stream = p.open(
+        rate=RESPEAKER_RATE,
+        format=p.get_format_from_width(RESPEAKER_WIDTH),
+        channels=RESPEAKER_CHANNELS,
+        input=True,
+        input_device_index=RESPEAKER_INDEX, )
+
+    print("* recording")
+
+    frames = []
+
+    for i in range(0, int(RESPEAKER_RATE / CHUNK * RECORD_SECONDS)):
+        data = stream.read(CHUNK)
+        frames.append(data)
+
+    print("* done recording")
+    print(len(frames))
+    print(len(frames[0]))
+
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+
+    b = np.frombuffer(b''.join(frames), dtype='<f4')
+    print(len(b[0]))
+
+
+    # wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+    # wf.setnchannels(RESPEAKER_CHANNELS)
+    # wf.setsampwidth(
+    #     p.get_sample_size(p.get_format_from_width(RESPEAKER_WIDTH)))
+    # wf.setframerate(RESPEAKER_RATE)
+    # wf.writeframes(b''.join(frames))
+    # wf.close()
+
 
 if __name__ == '__main__':
-    if dev:
-        Mic_tuning = Tuning(dev)
-        while True:
-            try:
-                print(Mic_tuning.direction)
-                time.sleep(0.5)
-            except KeyboardInterrupt:
-                break
+    record()
