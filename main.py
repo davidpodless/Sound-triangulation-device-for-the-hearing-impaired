@@ -5,7 +5,8 @@ import time
 import pyaudio
 import wave
 import numpy as np
-from scipy.io import wavfile
+# from scipy.io import wavfile
+import binascii
 
 RESPEAKER_RATE = 16000
 RESPEAKER_CHANNELS = 6  # change base on firmwares, 1_channel_firmware.bin as 1 or 6_channels_firmware.bin as 6
@@ -20,9 +21,10 @@ dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
 
 
 def read_audio():
+    pass
     # wave.open()
-    fs, data = wavfile.read('output.wav')
-    return fs, data
+    # fs, data = wavfile.read('output.wav')
+    # return fs, data
 
 
 def record():
@@ -45,14 +47,26 @@ def record():
 
     print("* done recording")
     print(len(frames))
-    print(len(frames[0]))
+    print(frames[0])
+    print(type(frames[0]))
+
+    first_data = frames[0]
+    channel1 = first_data[2::6]
+    channel2 = first_data[3::6]
+    channel3 = first_data[4::6]
+    channel4 = first_data[5::6]
+    print(binascii.hexlify(bytearray(first_data)))
+    print(binascii.hexlify(bytearray(channel1)))
+    print(binascii.hexlify(bytearray(channel2)))
+    print(binascii.hexlify(bytearray(channel3)))
+    print(binascii.hexlify(bytearray(channel4)))
 
     stream.stop_stream()
     stream.close()
     p.terminate()
-
-    b = np.frombuffer(b''.join(frames), dtype='<f4')
-    print(len(b[0]))
+    #
+    # b = np.frombuffer(b''.join(frames), dtype='<f4')
+    # print(len(b[0]))
 
 
     # wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
