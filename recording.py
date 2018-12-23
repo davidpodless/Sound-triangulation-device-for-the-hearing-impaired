@@ -39,6 +39,7 @@ def record(frames, foo):
     # print("* recording")
     # for i in range(0, int(RESPEAKER_RATE / CHUNK * RECORD_SECONDS)):
     while True:
+        # print("recording live")
         data = stream.read(main.CHUNK)
         frames.appendleft(data)
 

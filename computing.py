@@ -11,15 +11,18 @@ import main
 import matplotlib.pyplot as plt
 import scipy.fftpack
 from scipy import signal
+import time
 
 
 def extractAndCompute(frames, results):
+	time.sleep(3)
 	while True:
-		print("I am ALIVE")
+		print("computing alive")
 		nextSample = 0
 		if(frames):
 			while type(nextSample) == int:
 				nextSample = frames.pop()
+				# print(type(nextSample))
 			# if(nextSample != 0):
 			data = np.fromstring(nextSample, dtype=np.int16)
 			print(data)
@@ -56,19 +59,19 @@ def compute(channels):
 	results = []
 	xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
 	for i in range(len(findfeq)):
-		if findfeq[i] > 50 and xf[i] > 100:  # 50 - threshold that works for specific example, TODO - find the n(3?) max freqs
+		if findfeq[i] > 5 and xf[i] > 100:  # 50 - threshold that works for specific example, TODO - find the n(3?) max freqs
 			results.append((xf[i], findfeq[i]))  # xf[i] - the freqs of the signal
 
-	# fig, ax = plt.subplots()
-	# ax.plot(xf, 2.0 / N * np.abs(yf[:N // 2]))
-	# plt.show()
-
-	freq = results[0][0]
-
-	BPS = signal.firwin(150, [freq-50, freq+50], pass_zero=False, nyq=16000.)  # creating Band-Pass filter TODO - check the numbers
-	afterBPS = signal.lfilter(BPS, [1.0], channels)
-	plt.plot(afterBPS[2], 'r')
-	plt.plot(afterBPS[1], 'g')
-	plt.plot(afterBPS[3], 'b')
-	plt.plot(afterBPS[0], 'y')
+	fig, ax = plt.subplots()
+	ax.plot(xf, 2.0 / N * np.abs(yf[:N // 2]))
 	plt.show()
+	#print(results)
+	#freq = results[0][0]
+
+	#BPS = signal.firwin(150, [freq-50, freq+50], pass_zero=False, nyq=16000.)  # creating Band-Pass filter TODO - check the numbers
+	#afterBPS = signal.lfilter(BPS, [1.0], channels)
+	#plt.plot(afterBPS[2], 'r')
+	#plt.plot(afterBPS[1], 'g')
+	#plt.plot(afterBPS[3], 'b')
+	#plt.plot(afterBPS[0], 'y')
+	#plt.show()
