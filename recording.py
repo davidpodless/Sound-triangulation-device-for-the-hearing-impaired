@@ -8,6 +8,7 @@ import numpy as np
 # from scipy.io import wavfile
 import binascii
 import main
+from collections import deque
 
 RESPEAKER_CHANNELS = 6  # change base on firmwares, 1_channel_firmware.bin as 1 or 6_channels_firmware.bin as 6
 RESPEAKER_WIDTH = 2
@@ -25,7 +26,8 @@ def read_audio():
     # return fs, data
 
 
-def record(frames):
+def record(frames, foo):
+    print(type(frames))
     p = pyaudio.PyAudio()
 
     stream = p.open(

@@ -15,6 +15,7 @@ from scipy import signal
 
 def extractAndCompute(frames, results):
 	while True:
+		print("I am ALIVE")
 		nextSample = 0
 		if(frames):
 			while type(nextSample) == int:
@@ -30,7 +31,7 @@ def extractAndCompute(frames, results):
 			# else:
 			# 	continue
 		else:
-			break
+			continue
 
 
 def compute(channels):

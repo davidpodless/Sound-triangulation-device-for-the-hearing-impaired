@@ -4,7 +4,7 @@ import wave
 from scipy.io import wavfile
 import numpy as np
 
-# import recording
+import recording
 import computing
 
 RESPEAKER_RATE = 16000
@@ -28,8 +28,8 @@ if __name__ == '__main__':
 	frames = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
 	results = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
 	keepRecording = True
-	# recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames))
+	recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
 	computingThread = threading.Thread(group=None, target=computing.extractAndCompute, name="compute thread", args=(frames, results))
-	fake_record('./output2.wav', frames)
-	# recordingThread.run()
+	#fake_record('./output1.wav', frames)
+	recordingThread.run()
 	computingThread.run()
