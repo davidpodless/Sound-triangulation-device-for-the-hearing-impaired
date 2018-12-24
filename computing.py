@@ -61,31 +61,38 @@ def compute(channels, counter):
 	for i in range(len(findfeq)):
 		if findfeq[i] > 50 and xf[i] > 100:  # 50 - threshold that works for specific example, TODO - find the n(3?) max freqs
 			results.append((xf[i], findfeq[i]))  # xf[i] - the freqs of the signal
+	# for i in range(len(findfeq)):
+	# 	if xf[i] > 50:
+	# 		results.append((xf[i], findfeq[i]))
+	# results.sort(key=lambda tup: tup[1], reverse=False)
+	# print(results.pop())
+	# print(results[-3:-1])
 
 	# fig, ax = plt.subplots()
 	# ax.plot(xf, 2.0 / N * np.abs(yf[:N // 2]))
 	# plt.show()
 	if results and counter < 5:
-		plt.title = "audio without BPS " + str(counter)
-		channel2, = plt.plot(x, channels[2], 'r', label='channel 2')
-		channel1, = plt.plot(x, channels[1], 'g', label='channel 1')
-		channel3, = plt.plot(x, channels[3], 'b', label='channel 3')
-		channel0, = plt.plot(x, channels[0], 'y', label='channel 0')
-		name = "before BPS " + str(counter)
+		plt.title = "audio without BPF " + str(counter)
+		channel2, = plt.plot(x, channels[2], 'r', label='mic 3')
+		channel1, = plt.plot(x, channels[1], 'g', label='mic 2')
+		channel3, = plt.plot(x, channels[3], 'b', label='mic 4')
+		channel0, = plt.plot(x, channels[0], 'y', label='mic 1')
+		name = "before BPF " + str(counter)
 		plt.legend(handles=[channel0, channel1, channel2, channel3], loc=1)
 		plt.savefig(name + "."+FORMAT_TO_SAVE, format=FORMAT_TO_SAVE, dpi=600)
 		plt.cla()
-		freq = results[0][0]
+		for frequency in results:
+			freq = frequency[0]
 
-		BPS = signal.firwin(200, [freq-5, freq+5], pass_zero=False, nyq=16000.)  # creating Band-Pass filter TODO - check the numbers
-		after_BPS = signal.lfilter(BPS, [1.0], channels)
-		plt.title = "after BPS graph " + str(counter)
-		plt.plot(x, after_BPS[2], 'r', label='channel 2')
-		plt.plot(x, after_BPS[1], 'g', label='channel 1')
-		plt.plot(x, after_BPS[3], 'b', label='channel 3')
-		plt.plot(x, after_BPS[0], 'y', label='channel 0')
-		plt.legend(handles=[channel0, channel1, channel2, channel3], loc=1)
-		name = "after BPS " + str(counter)
-		plt.savefig(name + "."+FORMAT_TO_SAVE, format=FORMAT_TO_SAVE, dpi=600)
-		plt.cla()
-		# plt.show()
+			BPF = signal.firwin(200, [freq-5, freq+5], pass_zero=False, nyq=16000.)  # creating Band-Pass filter TODO - check the numbers
+			after_BPF = signal.lfilter(BPF, [1.0], channels)
+			plt.title = "after BPF graph " + str(counter) + "in freq = " + str(freq)
+			plt.plot(x, after_BPF[2], 'r', label='mic 3')
+			plt.plot(x, after_BPF[1], 'g', label='mic 2')
+			plt.plot(x, after_BPF[3], 'b', label='mic 4')
+			plt.plot(x, after_BPF[0], 'y', label='mic 1')
+			plt.legend(handles=[channel0, channel1, channel2, channel3], loc=1)
+			name = "after BPF " + str(counter) + "with freq " + str(freq)
+			plt.savefig(name + "."+FORMAT_TO_SAVE, format=FORMAT_TO_SAVE, dpi=600)
+			plt.cla()
+			# plt.show()

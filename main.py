@@ -17,7 +17,7 @@ keepRecording = True
 
 def getFileslist():
 	# return [f for f in listdir('./') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./500HZ sine 0 angle.wav']
+	return ['./600HZ sine 45 angle & 450 sine 90 angle v2.wav']
 
 
 
