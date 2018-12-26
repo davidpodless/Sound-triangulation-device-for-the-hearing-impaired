@@ -58,15 +58,9 @@ def compute(channels, counter):
 	findfeq = 2.0 / N * np.abs(yf[:N // 2])
 	results = []
 	xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
-	for i in range(len(findfeq)):
-		if findfeq[i] > 50 and xf[i] > 100:  # 50 - threshold that works for specific example, TODO - find the n(3?) max freqs
-			results.append((xf[i], findfeq[i]))  # xf[i] - the freqs of the signal
-	# for i in range(len(findfeq)):
-	# 	if xf[i] > 50:
-	# 		results.append((xf[i], findfeq[i]))
-	# results.sort(key=lambda tup: tup[1], reverse=False)
-	# print(results.pop())
-	# print(results[-3:-1])
+	for i in signal.find_peaks(findfeq)[0]: # 50 - threshold that works for specific example, TODO - find the n(3?) max freqs
+		if findfeq[i] > 50 and xf[i] > 50: # xf[i] - the freqs of the signal
+			results.append((xf[i], findfeq[i]))
 
 	# fig, ax = plt.subplots()
 	# ax.plot(xf, 2.0 / N * np.abs(yf[:N // 2]))
@@ -83,9 +77,14 @@ def compute(channels, counter):
 		plt.cla()
 		for frequency in results:
 			freq = frequency[0]
+			# creating Band-Pass filter TODO - check the numbers :
+			BPF = signal.firwin(50, [freq-5, freq+5], pass_zero=False, nyq=16000.)
 
-			BPF = signal.firwin(200, [freq-5, freq+5], pass_zero=False, nyq=16000.)  # creating Band-Pass filter TODO - check the numbers
 			after_BPF = signal.lfilter(BPF, [1.0], channels)
+			# print(after_BPF[0])
+			# yfBPF = scipy.fftpack.fft(after_BPF)
+			# plt.plot(xf, 2.0 / N * np.abs(yfBPF[0][:N // 2]))
+			# plt.show()
 			plt.title = "after BPF graph " + str(counter) + "in freq = " + str(freq)
 			plt.plot(x, after_BPF[2], 'r', label='mic 3')
 			plt.plot(x, after_BPF[1], 'g', label='mic 2')
@@ -95,4 +94,4 @@ def compute(channels, counter):
 			name = "after BPF " + str(counter) + "with freq " + str(freq)
 			plt.savefig(name + "."+FORMAT_TO_SAVE, format=FORMAT_TO_SAVE, dpi=600)
 			plt.cla()
-			# plt.show()
+	# 		plt.show()
