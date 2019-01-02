@@ -9,10 +9,12 @@ import numpy as np
 # import recording
 import computing
 
-RESPEAKER_RATE = 16000
+'''this program uses MKS system'''
+
+SAMPLE_RATE = 16000
 CHUNK = 1024
 RECORD_SECONDS = 32
-RECORD_BUFFER_MAX = (RESPEAKER_RATE * RECORD_SECONDS) // CHUNK
+RECORD_BUFFER_MAX = (SAMPLE_RATE * RECORD_SECONDS) // CHUNK
 keepRecording = True
 
 def getFileslist():

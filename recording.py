@@ -31,7 +31,7 @@ def record(frames, foo):
     p = pyaudio.PyAudio()
 
     stream = p.open(
-        rate=main.RESPEAKER_RATE,
+        rate=main.SAMPLE_RATE,
         format=p.get_format_from_width(RESPEAKER_WIDTH),
         channels=RESPEAKER_CHANNELS,
         input=True,
