@@ -117,7 +117,7 @@ def compute(channels, counter):
 			for i in range(len(tests)):
 				norm.append(np.linalg.norm((tests[i] - angle)))
 			index = np.argmin(norm)
-			# print(frequency[0], index, norm[index], tests[index], angle)
+			print(frequency[0], index, norm[index], tests[index], angle)
 			toReturn.append((frequency[0], index))
 			# for i in range(0, 360):
 			# 	print(i, tests[i])
