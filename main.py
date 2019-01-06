@@ -16,6 +16,9 @@ CHUNK = 1024
 RECORD_SECONDS = 32
 RECORD_BUFFER_MAX = (SAMPLE_RATE * RECORD_SECONDS) // CHUNK
 keepRecording = True
+averageNoiseArray = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
+averageNoise = 0
+newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./') if isfile(join('./', f)) and f.endswith(".wav")]
@@ -25,10 +28,12 @@ def getFileslist():
 
 def fake_record(files, frames):
 	print("was in fake record")
-	check = False
+	# lastFileIndex = len(files)
+	# counterFileIndex = 0
+	# check = False
 	for file in files:
-		if check:
-			break
+		# if check:
+		# 	break
 		wav = wave.open(file)
 		print(file.title())
 		# print(wav.getnchannels())
@@ -39,7 +44,9 @@ def fake_record(files, frames):
 			if data != b'':
 				frames.appendleft(data)
 			else:
-				check = True
+				# counterFileIndex += 1
+				# if counterFileIndex == lastFileIndex:
+				# 	check = True
 				break
 		# print(frames.pop())
 
@@ -51,7 +58,17 @@ if __name__ == '__main__':
 	# recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
 	fakeRecordingThread = threading.Thread(group=None, target=fake_record, name="fake recording thread", args=(getFileslist(), frames))
 	computingThread = threading.Thread(group=None, target=computing.extractAndCompute, name="compute thread", args=(frames, results))
+
 	# recordingThread.start()
 	fakeRecordingThread.start()
+	# fakeRecordingThread.join()
 	computingThread.start()
+
+
+	computingThread.join()
+	while results:
+		toPrint = results.pop()
+		if toPrint == 0:
+			continue
+		print(toPrint)
 

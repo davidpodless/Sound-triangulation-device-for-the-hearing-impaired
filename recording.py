@@ -19,13 +19,6 @@ WAVE_OUTPUT_FILENAME = "output.wav"
 dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
 
 
-def read_audio():
-    pass
-    # wave.open()
-    # fs, data = wavfile.read('output.wav')
-    # return fs, data
-
-
 def record(frames, foo):
     print(type(frames))
     p = pyaudio.PyAudio()
