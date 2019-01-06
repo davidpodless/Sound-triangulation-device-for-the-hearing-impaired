@@ -15,7 +15,6 @@ import time
 from systemConstants import *
 
 
-
 FORMAT_TO_SAVE = 'png'
 
 def extractAndCompute(frames, results):
@@ -78,7 +77,7 @@ def compute(channels, counter):
 	# fig, ax = plt.subplots()
 	# ax.plot(xf, np.abs(yf[:N // 2]))
 	# plt.show()
-	if results and counter < 5:
+	if results: #and counter < 5:
 		# plt.title = "audio without BPF " + str(counter)
 		# channel2, = plt.plot(x, channels[2], 'r', label='mic 3')
 		# channel1, = plt.plot(x, channels[1], 'g', label='mic 2')
@@ -94,7 +93,7 @@ def compute(channels, counter):
 			tests = potential_phi(frequency[0])
 			norm = []
 			for i in range(len(tests)):
-				norm.append(np.linalg.norm(tests[i] - angle))
+				norm.append(np.linalg.norm((tests[i] - angle)))
 			index = np.argmin(norm)
 			if(frequency[0] < 500):
 				print(frequency[0], index, norm[index], tests[index], angle)
