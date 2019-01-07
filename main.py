@@ -6,15 +6,11 @@ import wave
 from scipy.io import wavfile
 import numpy as np
 
-import recording
+# import recording
 import computing
-
+from systemConstants import *
 '''this program uses MKS system'''
 
-SAMPLE_RATE = 16000
-CHUNK = 1024
-RECORD_SECONDS = 32
-RECORD_BUFFER_MAX = (SAMPLE_RATE * RECORD_SECONDS) // CHUNK
 keepRecording = True
 averageNoiseArray = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
 averageNoise = 0
@@ -52,15 +48,15 @@ def fake_record(files, frames):
 
 
 if __name__ == '__main__':
-	# print(RECORD_BUFFER_MAX)
+	# print(RECORD_BUFFER_MAX) todo: delete this
 	frames = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
 	results = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
-	recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
-	# fakeRecordingThread = threading.Thread(group=None, target=fake_record, name="fake recording thread", args=(getFileslist(), frames))
+	# recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
+	fakeRecordingThread = threading.Thread(group=None, target=fake_record, name="fake recording thread", args=(getFileslist(), frames))
 	computingThread = threading.Thread(group=None, target=computing.extractAndCompute, name="compute thread", args=(frames, results))
 
-	recordingThread.start()
-	# fakeRecordingThread.start()
+	# recordingThread.start()
+	fakeRecordingThread.start()
 	# fakeRecordingThread.join()
 	computingThread.start()
 

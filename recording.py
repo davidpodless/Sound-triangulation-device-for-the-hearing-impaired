@@ -7,7 +7,8 @@ import wave
 import numpy as np
 # from scipy.io import wavfile
 import binascii
-import main
+# import main
+from systemConstants import *
 from collections import deque
 
 RESPEAKER_CHANNELS = 6  # change base on firmwares, 1_channel_firmware.bin as 1 or 6_channels_firmware.bin as 6
@@ -24,7 +25,7 @@ def record(frames, foo):
     p = pyaudio.PyAudio()
 
     stream = p.open(
-        rate=main.SAMPLE_RATE,
+        rate=SAMPLE_RATE,
         format=p.get_format_from_width(RESPEAKER_WIDTH),
         channels=RESPEAKER_CHANNELS,
         input=True,
@@ -33,7 +34,7 @@ def record(frames, foo):
     # for i in range(0, int(RESPEAKER_RATE / CHUNK * RECORD_SECONDS)):
     while True:
         # print("recording live")
-        data = stream.read(main.CHUNK)
+        data = stream.read(CHUNK)
         frames.appendleft(data)
 
     print("* done recording")
