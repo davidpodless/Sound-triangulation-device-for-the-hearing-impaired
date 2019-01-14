@@ -18,6 +18,9 @@ from systemConstants import *
 
 FORMAT_TO_SAVE = 'png'
 
+# TODO - instead of one CHUNK at a time, we need to take NUM_OF_SNAPSHOTS_FOR_MUSIC CHUNKs, we will compute fft for each one, the magnitude and the db of the signal, and the average the, find the peaks of the average and find the sample corrolate with the average pick and use them for the MUSIC/FFT BASE algorithms
+# TODO - possible way: the recording Thread should append to a list NUM_OF_SNAPSHOTS_FOR_MUSIC CHUNKs, and append the result to the deque. in this senerio - we need to do the splitting to 4 channels diffrently. ADVENATEGE - can't get "error" in the number of sample that we have, CONS - takes more time to start the signal proccessing.
+
 def extractAndCompute(frames, results):
 	'''
 	:param frames: deque of the raw data from the mics
@@ -179,10 +182,11 @@ def MUSIC_algorithm(vector_of_signals, freq):
 	Lambda = np.diag(eigenvalues)
 	# print(freq, np.abs(eigenvalues))
 	find_num_of_signals(eigenvalues)
-	# todo - how to continue? the instructions are not clear
+	# todo - how to continue? for 1<=m<=3, find the N-M smallest |lambda|s, take their eigenvectors.
+    # TODO - equ. 50 from the paper should work, S is a complex vector r = 1, phi = Delta_Phi that we find in potential_phi(). find the M phis that give as the maxest values
 
 
-def find_num_of_signals(eigenvalues): # todo - ask or about this
+def find_num_of_signals(eigenvalues): # todo - ask orr about this
 	N = len(eigenvalues)
 	print(np.abs(eigenvalues))
 	MDL = []
