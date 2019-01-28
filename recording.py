@@ -7,7 +7,7 @@ import wave
 import numpy as np
 # from scipy.io import wavfile
 import binascii
-# import main
+import main
 from systemConstants import *
 from collections import deque
 
@@ -32,10 +32,21 @@ def record(frames, foo):
         input_device_index=RESPEAKER_INDEX, )
     # print("* recording")
     # for i in range(0, int(RESPEAKER_RATE / CHUNK * RECORD_SECONDS)):
-    while True:
-        # print("recording live")
-        data = stream.read(CHUNK)
-        frames.appendleft(data)
+    if not main.CHUNK_RECORDING:
+        while True:
+            # print("recording live")
+            data = stream.read(CHUNK)
+            frames.appendleft(data)
+    else:
+        counter = 0
+        lst = []
+        while True:
+            data = stream.read(CHUNK)
+            lst.append(data)
+            counter = (counter + 1) % NUM_OF_SNAPSHOTS_FOR_MUSIC
+            if counter == 0:
+                frames.appendleft(lst.copy())
+                lst.clear()
 
     print("* done recording")
     print(len(frames))

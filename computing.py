@@ -14,21 +14,21 @@ from scipy import signal
 from scipy.stats.mstats import gmean
 import time
 from systemConstants import *
+from statistics import mode
 
 
 FORMAT_TO_SAVE = 'png'
 
-# TODO - instead of one CHUNK at a time, we need to take NUM_OF_SNAPSHOTS_FOR_MUSIC CHUNKs, we will compute fft for each one, the magnitude and the db of the signal, and the average the, find the peaks of the average and find the sample corrolate with the average pick and use them for the MUSIC/FFT BASE algorithms
+# TODO - instead of one CHUNK at a time, we need to take NUM_OF_SNAPSHOTS_FOR_MUSIC CHUNKs, we will compute fft for each one, the magnitude and the db of the signal, and the average then find the peaks of the average and find the sample corrolate with the average pick and use them for the MUSIC/FFT BASE algorithms
 # TODO - possible way: the recording Thread should append to a list NUM_OF_SNAPSHOTS_FOR_MUSIC CHUNKs, and append the result to the deque. in this senerio - we need to do the splitting to 4 channels diffrently. ADVENATEGE - can't get "error" in the number of sample that we have, CONS - takes more time to start the signal proccessing.
 
-def extractAndCompute(frames, results):
+
+def extract_data(frames, results):
 	'''
 	:param frames: deque of the raw data from the mics
 	:param results: deque where the thread will save the data
 	:return: None
 	'''
-	# time.sleep(3) # TODO - delete it
-	# print("was in extract and compute")
 	is_still_empty = False
 	thread_counter = 0
 	while True:
@@ -37,15 +37,18 @@ def extractAndCompute(frames, results):
 		while type(next_sample) == int and frames:
 			next_sample = frames.pop()
 		if frames:
-			# 6 channels in one stream
-			data = np.fromstring(next_sample, dtype=np.int16)
-			# 4 channels for 4 mics
-			ch_data = [np.ndarray]*4
-			for i in range(1, 5):
-				ch_data[i-1] = data[i::6]
-				# print(np.average(ch_data[i-1]))
-			# ch_data = ch_data - np.average(ch_data)
-			results.appendleft(calc_angle(ch_data, thread_counter))
+			list_of_data_sent_to_calc = []
+			for frame in next_sample:
+				# 6 channels in one stream
+				np_data = np.fromstring(frame, dtype=np.int16)
+				# 4 channels for 4 mics
+				ch_data = [np.ndarray]*4
+				for i in range(1, 5):
+					ch_data[i-1] = np_data[i::6]
+					# print(np.average(ch_data[i-1]))
+				# ch_data = ch_data - np.aveage(ch_data)
+				list_of_data_sent_to_calc.append(ch_data)
+			results.appendleft(calc_angle(list_of_data_sent_to_calc, thread_counter))
 			thread_counter += 1
 		else:
 			if is_still_empty:
@@ -56,74 +59,90 @@ def extractAndCompute(frames, results):
 				time.sleep(0.005)
 
 
-def calc_angle(channels, counter):
+def calc_angle(lst_of_data, counter):
 	'''
-	:param channels: array, n=4, in each cell the signal from the ith mic
+	:param lst_of_data: list of NUM_OF_SNAPSHOTS_FOR_MUSIC arrays, for each array: n=4, in each cell the signal from the ith mic
 	:param counter: for testing, counting how much into the signal the compute will go
 	:return: the frequency and the angles of the signal. in case where there is more than one frequency - for each one
 	'''
+	lst = []
+	mode_of_freqs = {}
+	for snapshot in lst_of_data:
+		results = find_peaks(snapshot[0], 0)
+		for index in results[1]:
+			if index >= 2:
+				if index not in mode_of_freqs:
+					mode_of_freqs[index] = 1
+				else:
+					mode_of_freqs[index] += 1
+		lst.append(results)
+	# mean_of_db_for_this_snapshot = np.array([x[2] for x in lst], dtype=np.float64).mean()
+	lst.clear()
+	for index in mode_of_freqs:
+		if mode_of_freqs[index] >= THRESHOLD_FOR_MODE:
+			lst.append(index)
+
 	N = main.CHUNK
 	T = 1.0 / main.SAMPLE_RATE  # sample spacing
-	x = np.linspace(0.0, N * T, N)
-	y = channels[0]
 
-	yf = scipy.fftpack.fft(y)
 	# all mics
-	channels_fft = scipy.fftpack.fft(channels)
+	channels_fft = scipy.fftpack.fft(lst_of_data)
 	channels_fft = channels_fft[:, :N // 2]
 	angle_of_channels = np.angle(channels_fft[:, :N // 2])
-
-
-	# mic[0]
-	abs_of_yf = np.abs(yf[:N // 2])
-	angle_of_yf = np.angle(yf[:N // 2])
-	magnitude_of_frequency = 2.0 / N * abs_of_yf
-	db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
-	for i in range(len(angle_of_yf)):
-		if angle_of_yf[i] != angle_of_channels[0][i]:
-			print("error!!!")
-
 	xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
 
 	# x = scipy.mean(db_of_yf) TODO - creating average for signal detecting
 	# main.newNoise = x
 	# main.averageNoiseArray.appendleft(x)
 	# average()
-	k_channels = [0] * 4
-	for i in range(4):
-		k_channels[i] = np.array_split(channels[i], NUM_OF_SNAPSHOTS_FOR_MUSIC)
-	small_chunk = len(k_channels[0][0])
-	k_channels_fft = scipy.fftpack.fft(k_channels)
-	k_channels_fft = k_channels_fft[:, :, :small_chunk//2]
-	k_xf = np.linspace(0.0, 1.0 / (2.0 * T), small_chunk / 2)
-	# print(k_xf, xf)
+
 	results = []
-	for i in signal.find_peaks(db_of_yf)[0]:  # 40 - threshold that works for specific example,
+	for i in lst:  # 40 - threshold that works for specific example,
 		# results for MUSIC algorithm:
-		# if db_of_yf[i] > 35 and xf[i] > 100:
-			# index = (np.abs(k_xf - xf[i])).argmin()
-			# MUSIC_algorithm(k_channels_fft[:,:,index], xf[i])
-			# MUSIC_array.append(channels_fft[:, i])
-			# print(counter)
+		vec = []
+		print(i)
+
+		for j in range(len(angle_of_channels)):
+			temp = angle_of_channels[j,:,i]
+			vec.append((temp - temp[0]) % (2*PI))
+		print(vec, len(vec))
+		# index = (np.abs(k_xf - xf[i])).argmin()
+		# MUSIC_algorithm(k_channels_fft[:,:,index], xf[i])
+		# MUSIC_array.append(channels_fft[:, i])
+		# print(counter)
+
 		# results for one signal algorithm
-		if db_of_yf[i] > 35 and xf[i] > 100 and db_of_yf[i] > main.averageNoise:  # xf[i] - the freqs of the signal TODO - add to the threshold the average of the old signals
-			'''this line need a little bit explanation:
-				xf[i] is the frequency of the signal, the angle of yf[i] is the angle in the raw data of mic[0]
-				the last element is the reletive angle between the first angle and the i-th angle modulus 2PI
-				  - in complex numbers, multi in polar mode become +/- of the angle'''
-			results.append((xf[i], db_of_yf[i], (angle_of_channels[:, i] - angle_of_yf[i]) % (2 * PI)))
-
-
-
-
-
-
-
-
+		'''this line need a little bit explanation:
+			xf[i] is the frequency of the signal,
+			the last element is the reletive angle between the first angle and the i-th angle modulus 2PI
+			  - in complex numbers, multi in polar mode become +/- of the angle'''
+		# results.append((xf[i], (angle_of_channels[0][:, i] - angle_of_channels[0][0][i]) % (2 * PI)))
 	# fig, ax = plt.subplots()
 	# ax.plot(xf, db_of_yf)
 	# plt.show()
-	return one_signal_algorithm(results)
+	# return one_signal_algorithm(results)
+	exit(123)
+
+
+def find_peaks(raw_signal, avr):
+	'''
+	:param raw_signal: raw signal from 1 mic
+	:param avr: the db average of the signal for the last RECORD_SECONDS seconds
+	:return: array [list of the freq peaks in the signal, the location in the array of it, the average of the db of the signal]
+	'''
+	N = main.CHUNK
+	T = 1.0 / main.SAMPLE_RATE  # sample spacing
+	x = np.linspace(0.0, N * T, N)
+
+	xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
+	yf = scipy.fftpack.fft(raw_signal)
+	abs_of_yf = np.abs(yf[:N // 2])
+	magnitude_of_frequency = 2.0 / N * abs_of_yf
+	db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
+	result = signal.find_peaks(db_of_yf, height=max(30, avr))
+	return [xf[result[0]], result[0], db_of_yf.mean()]
+
+
 
 
 
@@ -140,11 +159,6 @@ def potential_phi(freq):
 
 		rads = math.radians(i)
 		deltaX = [0, D * math.cos(rads), math.sqrt(2) * D * math.cos((PI/4) - rads), D * math.cos(PI/2 - rads)]
-		# time approach:
-		# results.append(((-freq * D * math.cos(rads))/SPEED_OF_SOUND))
-		# results.append(((-freq * D * math.sqrt(2) * math.cos((PI / 4) - rads))/SPEED_OF_SOUND))
-		# results.append(((-freq * D * math.cos((PI/2) - rads))/SPEED_OF_SOUND))
-
 		# phase approach:
 		phaseChange = (2*PI*freq / SPEED_OF_SOUND)
 		# phaseChangeArray = [phaseChange, phaseChange, phaseChange, phaseChange]
@@ -199,9 +213,14 @@ def find_num_of_signals(eigenvalues): # todo - ask orr about this
 	return index
 
 
-def one_signal_algorithm(results):
+def one_signal_algorithm(peaks):
+	'''
+	:param peaks: list of tuples (freq, db of the signal, angle) that represent peaks in frequency
+	:return: the direction which the signal come from in a tuple (freq, direction, db of the signal)
+	this is the naive and not necessarily work approach.
+	'''
 	to_return = []
-	if results:
+	if peaks:
 		# plt.title = "audio without BPF " + str(counter)
 		# channel2, = plt.plot(x, channels[2], 'r', label='mic 3')
 		# channel1, = plt.plot(x, channels[1], 'g', label='mic 2')
@@ -211,8 +230,8 @@ def one_signal_algorithm(results):
 		# plt.legend(handles=[channel0, channel1, channel2, channel3], loc=1)
 		# plt.savefig(name + "."+FORMAT_TO_SAVE, format=FORMAT_TO_SAVE, dpi=600)
 		# plt.cla()
-		for frequency in results:
-			angle = frequency[2]
+		for frequency in peaks:
+			angle = frequency[1]
 			# print(frequency[0], angle)
 			tests = potential_phi(frequency[0])
 			norm = []
@@ -222,7 +241,7 @@ def one_signal_algorithm(results):
 			# print(frequency[0], index, norm[index], tests[index], angle)
 			# string = str(frequency[0]) + ": the angle is " + str(index) + " and the db is " + str(frequency[1])
 			# to_return.append(string)
-			to_return.append((frequency[0], index, frequency[1]))
+			to_return.append((frequency[0], index))
 
 	# for i in range(0, 360):
 	# 	print(i, tests[i])
