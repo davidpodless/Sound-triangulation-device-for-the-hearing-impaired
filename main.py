@@ -19,7 +19,7 @@ newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./600HZ sine 45 angle & 450 sine 90 angle v2.wav']
+	return ['./500HZ sine 0 angle.wav']
 
 
 
@@ -69,5 +69,5 @@ if __name__ == '__main__':
 		toPrint = results.pop()
 		if toPrint == 0:
 			continue
-		print(toPrint)
+		# print(toPrint)
 
