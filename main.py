@@ -19,7 +19,7 @@ newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./500HZ sine 0 angle.wav']
+	return ['./that the way it is 90 after amp.wav']
 
 
 

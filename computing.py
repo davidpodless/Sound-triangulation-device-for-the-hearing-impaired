@@ -83,7 +83,6 @@ def calc_angle(lst_of_data, counter):
 	for index in mode_of_freqs:
 		if mode_of_freqs[index] >= THRESHOLD_FOR_MODE:
 			lst.append(index)
-	# print(lst, peaks_in_data)
 	fft_signal = scipy.fftpack.fft(lst_of_data)
 	temp = fft_signal[:,:, lst]
 	seperated_vector_for_music = []
@@ -95,6 +94,7 @@ def calc_angle(lst_of_data, counter):
 	N = CHUNK
 	T = 1.0 / SAMPLE_RATE
 	xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
+	# print(xf[lst])
 	for index, fft_vector in enumerate(seperated_vector_for_music):
 		MUSIC_algorithm(fft_vector, xf[lst[index]], counter)
 
@@ -202,13 +202,14 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# In this function, N - number of mics, M number of signals
 	R = np.zeros([4,4], dtype=np.complex64)
 	# print(R)
+	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
 	for vector in vector_of_signals:
 		R += np.outer(vector, vector.conj().T)
 		# print(R)
 	R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
 	# print(R, "\n\n\n")
 	# print("finito")
-	# now, R is N*N matrix with rank M. meaning, there is N-M eigenvectors corresponding to the zero eigenvalue
+	'''now, R is N*N matrix with rank M. meaning, there is N-M eigenvectors corresponding to the zero eigenvalue'''
 	eigenvalues, eigenvectors = np.linalg.eig(R)
 	# print(eigenvalues, eigenvectors, "\n\n\n")
 	idx = eigenvalues.argsort()[::-1]
@@ -216,7 +217,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	eigenvectors = eigenvectors[:, idx]
 	test = eigenvectors[-1]
 	np.delete(eigenvectors, -1)
-	np.delete(eigenvectors, -1)
+	# np.delete(eigenvectors, -1)
 
 
 	# np.set_printoptions(suppress=True,
@@ -226,7 +227,8 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# Lambda = np.diag(eigenvalues)
 	# print(Lambda)
 	# print(R)
-	# print(freq, np.abs(eigenvalues))
+	DB_of_eigenvalues = 20 * scipy.log10(2 / CHUNK * np.abs(eigenvalues))
+	print("db: ", DB_of_eigenvalues, "\tfreq: ", freq)
 	# find_num_of_signals(eigenvalues)
 	# todo - how to continue? for 1<=m<=3, find the N-M smallest |lambda|s, take their eigenvectors.
     # TODO - equ. 50 from the paper should work, S is a complex vector r = 1, phi = Delta_Phi that we find in potential_phi(). find the M phis that give as the maxest values
@@ -235,7 +237,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	nprect = np.vectorize(rect)
 
 	s_phi = nprect(1, potential_phi(freq))
-	assert (np.abs(np.angle(s_phi) - potential_phi(freq)) < 0.000000001).all()
+	# assert (np.abs(np.angle(s_phi) - potential_phi(freq)) < 0.000000001).all()
 	# print((s_phi[5]))
 	P_MUSIC_phi = []
 	# for angle in s_phi:
@@ -244,11 +246,11 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	for angle in s_phi:
 		result = sum(np.square(np.abs(np.dot(eigenvectors.conj().T, angle))))
 		P_MUSIC_phi.append(1 / result)
-	plt.plot(range(360), P_MUSIC_phi)
-	plt.title(counter)
-	plt.show()
+	# plt.plot(range(360), P_MUSIC_phi)
+	# plt.title(counter)
+	# plt.show()
 	final_angle = np.argmax(P_MUSIC_phi)
-	print(freq, final_angle, P_MUSIC_phi[0], P_MUSIC_phi[int(final_angle)])
+	print(freq, final_angle)
 	# exit(1)
 
 
