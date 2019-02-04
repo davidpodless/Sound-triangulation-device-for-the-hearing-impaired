@@ -78,15 +78,16 @@ def calc_angle(lst_of_data, counter):
 					mode_of_freqs[index] += 1
 		peaks_in_data.append(results)
 
-	# mean_of_db_for_this_snapshot = np.array([x[2] for x in lst], dtype=np.float64).mean()
-	lst = []
+
+	location_of_real_peaks_in_data = []
 	for index in mode_of_freqs:
 		if mode_of_freqs[index] >= THRESHOLD_FOR_MODE:
-			lst.append(index)
+			location_of_real_peaks_in_data.append(index)
+	# print(location_of_real_peaks_in_data)
 	fft_signal = scipy.fftpack.fft(lst_of_data)
-	temp = fft_signal[:,:, lst]
+	temp = fft_signal[:,:, location_of_real_peaks_in_data]
 	seperated_vector_for_music = []
-	for i in range(len(lst)):
+	for i in range(len(location_of_real_peaks_in_data)):
 		# angles_vector = np.angle()
 		seperated_vector_for_music.append(temp[:, :, i])
 
@@ -94,51 +95,11 @@ def calc_angle(lst_of_data, counter):
 	N = CHUNK
 	T = 1.0 / SAMPLE_RATE
 	xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
-	# print(xf[lst])
+	# print(xf[location_of_real_peaks_in_data])
+	to_return = []
 	for index, fft_vector in enumerate(seperated_vector_for_music):
-		MUSIC_algorithm(fft_vector, xf[lst[index]], counter)
-
-	# N = main.CHUNK
-	# T = 1.0 / main.SAMPLE_RATE  # sample spacing
-	#
-	# # all mics
-	# channels_fft = scipy.fftpack.fft(lst_of_data)
-	# channels_fft = channels_fft[:, :N // 2]
-	# angle_of_channels = np.angle(channels_fft[:, :N // 2])
-	# # xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
-	#
-	# # x = scipy.mean(db_of_yf) TODO - creating average for signal detecting
-	# # main.newNoise = x
-	# # main.averageNoiseArray.appendleft(x)
-	# # average()
-	#
-	# results = []
-	# for i in peaks_in_data:  # 40 - threshold that works for specific example,
-	# 	# results for MUSIC algorithm:
-	# 	vec = []
-	# 	print(i)
-	#
-	# 	for j in range(len(angle_of_channels)):
-	# 		temp = angle_of_channels[j,:,i]
-	# 		vec.append((temp - temp[0]) % (2*PI))
-	# 	print(vec, len(vec))
-	# 	# index = (np.abs(k_xf - xf[i])).argmin()
-	# 	# MUSIC_algorithm(k_channels_fft[:,:,index], xf[i])
-	# 	# MUSIC_array.append(channels_fft[:, i])
-	# 	# print(counter)
-	#
-	# 	# results for one signal algorithm
-	# 	'''this line need a little bit explanation:
-	# 		xf[i] is the frequency of the signal,
-	# 		the last element is the reletive angle between the first angle and the i-th angle modulus 2PI
-	# 		  - in complex numbers, multi in polar mode become +/- of the angle'''
-	# 	# results.append((xf[i], (angle_of_channels[0][:, i] - angle_of_channels[0][0][i]) % (2 * PI)))
-	# # fig, ax = plt.subplots()
-	# # ax.plot(xf, db_of_yf)
-	# # plt.show()
-	# # return one_signal_algorithm(results)
-	# exit(123)
-
+		to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], counter))
+	return to_return
 
 def find_peaks(raw_signal, avr):
 	'''
@@ -156,6 +117,7 @@ def find_peaks(raw_signal, avr):
 	magnitude_of_frequency = 2.0 / N * abs_of_yf
 	db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
 	result = signal.find_peaks(db_of_yf, height=max(30, avr))
+	# TODO - should I return the db of the peaks? for deciding which freq to choose? no idea
 	return [xf[result[0]], result[0],  db_of_yf.mean()]
 
 
@@ -169,11 +131,11 @@ def potential_phi(freq):
 	:return: array, n=360, each cell represent the value that should be in the Vector if the signal come from that angle
 	'''
 	lst_to_return = []
-	for i in range(360):
+	for i in range(NUM_OF_DIRECTIONS):
 		results = []
 		# results.append(0)
 
-		rads = math.radians(i)
+		rads = math.radians(i*ANGLE_OF_DIRECTIONS)
 		deltaX = [0, D * math.cos(rads), math.sqrt(2) * D * math.cos((PI/4) - rads), D * math.cos(PI/2 - rads)]
 		# phase approach:
 		phaseChange = (2*PI*freq / SPEED_OF_SOUND)
@@ -197,36 +159,33 @@ def average():
 
 
 def MUSIC_algorithm(vector_of_signals, freq, counter):
-	# print(vector_of_signals)
-	# print(len(vector_of_signals), vector_of_signals)
-	# In this function, N - number of mics, M number of signals
-	R = np.zeros([4,4], dtype=np.complex64)
-	# print(R)
+	'''
+	:param vector_of_signals: vector of NUM_OF_SNAPSHOTS_FOR_MUSIC snapshot, each snapshot contain signal in frequency freq
+	:param freq: the frequency of the signal
+	:param counter: for debug purpose
+	:return: the angles where the signals came from
+	'''
+
+	''' In this function, N - number of mics, M number of signals'''
+
+	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=np.complex64)
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
 	for vector in vector_of_signals:
 		R += np.outer(vector, vector.conj().T)
-		# print(R)
+
 	R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
-	# print(R, "\n\n\n")
-	# print("finito")
+
 	'''now, R is N*N matrix with rank M. meaning, there is N-M eigenvectors corresponding to the zero eigenvalue'''
 	eigenvalues, eigenvectors = np.linalg.eig(R)
-	# print(eigenvalues, eigenvectors, "\n\n\n")
-	idx = eigenvalues.argsort()[::-1]
+
+	idx = eigenvalues.argsort()
 	eigenvalues = eigenvalues[idx]
 	eigenvectors = eigenvectors[:, idx]
-	test = eigenvectors[-1]
-	np.delete(eigenvectors, -1)
-	# np.delete(eigenvectors, -1)
-
 
 	# np.set_printoptions(suppress=True,
 	#                     formatter={'float_kind': '{:f}'.format})
 	# TODO - choose thershold for the eigenvalues, use records for that. using magintuted or dB?
-	# print((2 / CHUNK * np.real(eigenvalues)))
-	# Lambda = np.diag(eigenvalues)
-	# print(Lambda)
-	# print(R)
+
 	DB_of_eigenvalues = 20 * scipy.log10(2 / CHUNK * np.abs(eigenvalues))
 	print("db: ", DB_of_eigenvalues, "\tfreq: ", freq)
 	# find_num_of_signals(eigenvalues)
@@ -237,20 +196,28 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	nprect = np.vectorize(rect)
 
 	s_phi = nprect(1, potential_phi(freq))
-	# assert (np.abs(np.angle(s_phi) - potential_phi(freq)) < 0.000000001).all()
+	assert (np.abs(np.angle(s_phi) - potential_phi(freq)) < 0.000000001).all()
 	# print((s_phi[5]))
 	P_MUSIC_phi = []
 	# for angle in s_phi:
 	# 	P_MUSIC_phi.append(np.square(np.abs(np.dot(test.conj().T,angle))))
 	# print(freq, np.argmax(P_MUSIC_phi))
+	j = 0
 	for angle in s_phi:
-		result = sum(np.square(np.abs(np.dot(eigenvectors.conj().T, angle))))
+		result = 0
+		for i in range(len(eigenvalues) - M):
+			result += np.square(np.abs(np.dot(eigenvectors[i].conj().T, angle)))
+			print(i, DB_of_eigenvalues[i], end=" ")
+		print(j)
+		j += 1
 		P_MUSIC_phi.append(1 / result)
-	# plt.plot(range(360), P_MUSIC_phi)
-	# plt.title(counter)
+	# x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
+	# plt.plot(x, P_MUSIC_phi)
+	# title = str(counter) +" " + str(freq)
+	# plt.title(title)
 	# plt.show()
-	final_angle = np.argmax(P_MUSIC_phi)
-	print(freq, final_angle)
+	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS
+	return freq, final_angle
 	# exit(1)
 
 
@@ -275,15 +242,6 @@ def one_signal_algorithm(peaks):
 	'''
 	to_return = []
 	if peaks:
-		# plt.title = "audio without BPF " + str(counter)
-		# channel2, = plt.plot(x, channels[2], 'r', label='mic 3')
-		# channel1, = plt.plot(x, channels[1], 'g', label='mic 2')
-		# channel3, = plt.plot(x, channels[3], 'b', label='mic 4')
-		# channel0, = plt.plot(x, channels[0], 'y', label='mic 1')
-		# name = "before BPF " + str(counter)
-		# plt.legend(handles=[channel0, channel1, channel2, channel3], loc=1)
-		# plt.savefig(name + "."+FORMAT_TO_SAVE, format=FORMAT_TO_SAVE, dpi=600)
-		# plt.cla()
 		for frequency in peaks:
 			angle = frequency[1]
 			# print(frequency[0], angle)
@@ -295,26 +253,5 @@ def one_signal_algorithm(peaks):
 			# print(frequency[0], index, norm[index], tests[index], angle)
 			# string = str(frequency[0]) + ": the angle is " + str(index) + " and the db is " + str(frequency[1])
 			# to_return.append(string)
-			to_return.append((frequency[0], index))
-
-	# for i in range(0, 360):
-	# 	print(i, tests[i])
-	# creating Band-Pass filter TODO - check the numbers :
-	# BPF = signal.firwin(50, [angle-5, angle+5], pass_zero=False, nyq=16000.)
-
-	# after_BPF = signal.lfilter(BPF, [1.0], channels)
-	# print(after_BPF[0])
-	# yfBPF = scipy.fftpack.fft(after_BPF)
-	# plt.plot(xf, 2.0 / N * np.abs(yfBPF[0][:N // 2]))
-	# plt.show()
-	# plt.title = "after BPF graph " + str(counter) + "in angle = " + str(angle)
-	# plt.plot(x, after_BPF[2], 'r', label='mic 3')
-	# plt.plot(x, after_BPF[1], 'g', label='mic 2')
-	# plt.plot(x, after_BPF[3], 'b', label='mic 4')
-	# plt.plot(x, after_BPF[0], 'y', label='mic 1')
-	# plt.legend(handles=[channel0, channel1, channel2, channel3], loc=1)
-	# name = "after BPF " + str(counter) + "with angle " + str(angle)
-	# plt.savefig(name + "."+FORMAT_TO_SAVE, format=FORMAT_TO_SAVE, dpi=600)
-	# plt.cla()
-	# 		plt.show()
+			to_return.append((frequency[0], ANGLE_OF_DIRECTIONS*index))
 	return to_return

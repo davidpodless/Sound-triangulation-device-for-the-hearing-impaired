@@ -19,7 +19,7 @@ newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./that the way it is 90 after amp.wav']
+	return ['./truck horn 45.wav']
 
 
 
@@ -69,5 +69,5 @@ if __name__ == '__main__':
 		toPrint = results.pop()
 		if toPrint == 0:
 			continue
-		# print(toPrint)
+		print(toPrint)
 
