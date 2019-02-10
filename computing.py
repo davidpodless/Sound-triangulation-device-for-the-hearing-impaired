@@ -17,6 +17,7 @@ from systemConstants import *
 from cmath import rect
 
 
+
 FORMAT_TO_SAVE = 'png'
 
 # TODO - instead of one CHUNK at a time, we need to take NUM_OF_SNAPSHOTS_FOR_MUSIC CHUNKs, we will compute fft for each one, the magnitude and the db of the signal, and the average then find the peaks of the average and find the sample corrolate with the average pick and use them for the MUSIC/FFT BASE algorithms
@@ -49,6 +50,7 @@ def extract_data(frames, results):
 					# print(np.average(ch_data[i-1]))
 				# ch_data = ch_data - np.aveage(ch_data)
 				list_of_data_sent_to_calc.append(ch_data)
+
 			results.appendleft(calc_angle(list_of_data_sent_to_calc, thread_counter))
 			thread_counter += 1
 		else:
@@ -69,36 +71,42 @@ def calc_angle(lst_of_data, counter):
 	peaks_in_data = []
 	mode_of_freqs = {}
 	for snapshot in lst_of_data:
-		results = find_peaks(snapshot[0], 0)
+		# results contains: frequency, loction in sanpshot, mean of db.
+		results = find_peaks(snapshot[0], 0)  # TODO - send average to the find_peaks
 		for index in results[1]:
-			if index >= 2:
-				if index not in mode_of_freqs:
+			if index >= 2:  # ignore low frequencies because of nosies
+				if index not in mode_of_freqs: # count how many time specific frequency is in the data
 					mode_of_freqs[index] = 1
 				else:
 					mode_of_freqs[index] += 1
 		peaks_in_data.append(results)
 
-
 	location_of_real_peaks_in_data = []
 	for index in mode_of_freqs:
 		if mode_of_freqs[index] >= THRESHOLD_FOR_MODE:
 			location_of_real_peaks_in_data.append(index)
-	# print(location_of_real_peaks_in_data)
+
 	fft_signal = scipy.fftpack.fft(lst_of_data)
+	# vector for all relevant frequencies
 	temp = fft_signal[:,:, location_of_real_peaks_in_data]
-	seperated_vector_for_music = []
+
+	# each frequency in a special vector
+	separated_vector_for_music = []
 	for i in range(len(location_of_real_peaks_in_data)):
 		# angles_vector = np.angle()
-		seperated_vector_for_music.append(temp[:, :, i])
+		separated_vector_for_music.append(temp[:, :, i])
 
-	# print(seperated_angles_vector_for_music[0])
+	# print(separated_vector_for_music[0])
 	N = CHUNK
 	T = 1.0 / SAMPLE_RATE
 	xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
 	# print(xf[location_of_real_peaks_in_data])
 	to_return = []
-	for index, fft_vector in enumerate(seperated_vector_for_music):
+	# exit()
+	for index, fft_vector in enumerate(separated_vector_for_music):
 		to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], counter))
+	# print(to_return)
+	# exit(1)
 	return to_return
 
 def find_peaks(raw_signal, avr):
@@ -171,8 +179,15 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=np.complex64)
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
 	for vector in vector_of_signals:
+		normalized = vector[0]
+		for i in range(len(vector)):
+			vector[i] /= normalized
+			# vector[i] = rect(1, np.angle(vector[i]))
+			# print(np.abs(vector[i]), end="\t")
+		# print("\n")
+		# print("tada: ", vector[0])
 		R += np.outer(vector, vector.conj().T)
-
+	# exit(111)
 	R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
 
 	'''now, R is N*N matrix with rank M. meaning, there is N-M eigenvectors corresponding to the zero eigenvalue'''
@@ -187,16 +202,24 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# TODO - choose thershold for the eigenvalues, use records for that. using magintuted or dB?
 
 	DB_of_eigenvalues = 20 * scipy.log10(2 / CHUNK * np.abs(eigenvalues))
-	print("db: ", DB_of_eigenvalues, "\tfreq: ", freq)
+	# print("db: ", DB_of_eigenvalues, "\tfreq: ", freq)
 	# find_num_of_signals(eigenvalues)
 	# todo - how to continue? for 1<=m<=3, find the N-M smallest |lambda|s, take their eigenvectors.
     # TODO - equ. 50 from the paper should work, S is a complex vector r = 1, phi = Delta_Phi that we find in potential_phi(). find the M phis that give as the maxest values
+
 	M = 1
-
 	nprect = np.vectorize(rect)
+	temp = potential_phi(freq)
+	s_phi = nprect(1, temp)
+	# print(s_phi[2])
 
-	s_phi = nprect(1, potential_phi(freq))
-	assert (np.abs(np.angle(s_phi) - potential_phi(freq)) < 0.000000001).all()
+	# just for proving a point:
+	# for j in range(len(s_phi)):
+	# 	for i in range(4):
+	# 		s_phi[j] = rect(i, temp[j][i])
+	# print(s_phi[2])
+
+	# assert (np.abs(np.angle(s_phi) - temp) < 0.0000001).all(), (freq, np.angle(s_phi) - temp)
 	# print((s_phi[5]))
 	P_MUSIC_phi = []
 	# for angle in s_phi:
@@ -207,8 +230,8 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 		result = 0
 		for i in range(len(eigenvalues) - M):
 			result += np.square(np.abs(np.dot(eigenvectors[i].conj().T, angle)))
-			print(i, DB_of_eigenvalues[i], end=" ")
-		print(j)
+			# print(i, DB_of_eigenvalues[i], end=" ")
+		# print(j)
 		j += 1
 		P_MUSIC_phi.append(1 / result)
 	# x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
@@ -216,7 +239,9 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# title = str(counter) +" " + str(freq)
 	# plt.title(title)
 	# plt.show()
-	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS
+	# print(P_MUSIC_phi)
+	print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
+	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS # TODO - return the M maxes, not only 1
 	return freq, final_angle
 	# exit(1)
 
