@@ -18,8 +18,8 @@ averageNoise = 0
 newNoise = 0
 
 def getFileslist():
-	# return [f for f in listdir('./') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./never again 45.wav']
+	# return [f for f in listdir('./wav_files') if isfile(join('./', f)) and f.endswith(".wav")]
+	return ['./wav_files/never again 45.wav']
 
 
 

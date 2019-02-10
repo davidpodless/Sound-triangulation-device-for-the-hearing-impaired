@@ -190,6 +190,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# exit(111)
 	R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
 
+	# print(np.abs(R),"\n" ,np.angle(R), "\n\n\n")
 	'''now, R is N*N matrix with rank M. meaning, there is N-M eigenvectors corresponding to the zero eigenvalue'''
 	eigenvalues, eigenvectors = np.linalg.eig(R)
 
@@ -207,17 +208,18 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# todo - how to continue? for 1<=m<=3, find the N-M smallest |lambda|s, take their eigenvectors.
     # TODO - equ. 50 from the paper should work, S is a complex vector r = 1, phi = Delta_Phi that we find in potential_phi(). find the M phis that give as the maxest values
 
-	M = 1
+	M = 2
 	nprect = np.vectorize(rect)
 	temp = potential_phi(freq)
 	s_phi = nprect(1, temp)
 	# print(s_phi[2])
 
 	# just for proving a point:
-	# for j in range(len(s_phi)):
-	# 	for i in range(4):
-	# 		s_phi[j] = rect(i, temp[j][i])
-	# print(s_phi[2])
+	for j in range(len(s_phi)):
+		for i in range(4):
+			s_phi[j] = rect(R[i][i], temp[j][i])
+			# print(R[i][i])
+	# print(s_phi[4])
 
 	# assert (np.abs(np.angle(s_phi) - temp) < 0.0000001).all(), (freq, np.angle(s_phi) - temp)
 	# print((s_phi[5]))
@@ -234,11 +236,11 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 		# print(j)
 		j += 1
 		P_MUSIC_phi.append(1 / result)
-	# x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
-	# plt.plot(x, P_MUSIC_phi)
-	# title = str(counter) +" " + str(freq)
-	# plt.title(title)
-	# plt.show()
+	x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
+	plt.plot(x, P_MUSIC_phi)
+	title = str(counter) +" " + str(freq)
+	plt.title(title)
+	plt.show()
 	# print(P_MUSIC_phi)
 	print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
 	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS # TODO - return the M maxes, not only 1
