@@ -19,7 +19,7 @@ newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./truck horn 45.wav']
+	return ['./never again 45.wav']
 
 
 
