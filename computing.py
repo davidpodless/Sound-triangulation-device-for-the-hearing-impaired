@@ -217,9 +217,9 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# just for proving a point:
 	for j in range(len(s_phi)):
 		for i in range(4):
-			s_phi[j] = rect(R[i][i], temp[j][i])
+			s_phi[j] = rect(np.abs(R[i][i]), temp[j][i])
 			# print(R[i][i])
-	# print(s_phi[4])
+	# print("\n\n\n\n\n")
 
 	# assert (np.abs(np.angle(s_phi) - temp) < 0.0000001).all(), (freq, np.angle(s_phi) - temp)
 	# print((s_phi[5]))
@@ -236,13 +236,13 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 		# print(j)
 		j += 1
 		P_MUSIC_phi.append(1 / result)
-	x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
-	plt.plot(x, P_MUSIC_phi)
-	title = str(counter) +" " + str(freq)
-	plt.title(title)
-	plt.show()
+	# x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
+	# plt.plot(x, P_MUSIC_phi)
+	# title = str(counter) +" " + str(freq)
+	# plt.title(title)
+	# plt.show()
 	# print(P_MUSIC_phi)
-	print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
+	# print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
 	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS # TODO - return the M maxes, not only 1
 	return freq, final_angle
 	# exit(1)
