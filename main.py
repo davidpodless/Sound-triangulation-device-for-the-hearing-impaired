@@ -65,9 +65,17 @@ if __name__ == '__main__':
 
 
 	computingThread.join()
+	mode = {}
 	while results:
+
 		toPrint = results.pop()
 		if toPrint == 0:
 			continue
-		print(toPrint)
+		for result in toPrint:
+			print(result[1])
+			if result[1] not in mode:  # count how many time specific frequency is in the data
+				mode[result[1]] = 1
+			else:
+				mode[result[1]] += 1
 
+	print(mode)

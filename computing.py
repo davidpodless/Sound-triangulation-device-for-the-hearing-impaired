@@ -17,7 +17,7 @@ from systemConstants import *
 from cmath import rect
 
 
-
+average_DB = 0
 FORMAT_TO_SAVE = 'png'
 
 # TODO - instead of one CHUNK at a time, we need to take NUM_OF_SNAPSHOTS_FOR_MUSIC CHUNKs, we will compute fft for each one, the magnitude and the db of the signal, and the average then find the peaks of the average and find the sample corrolate with the average pick and use them for the MUSIC/FFT BASE algorithms
@@ -68,11 +68,14 @@ def calc_angle(lst_of_data, counter):
 	:param counter: for testing, counting how much into the signal the compute will go
 	:return: the frequency and the angles of the signal. in case where there is more than one frequency - for each one
 	'''
+	global average_DB
 	peaks_in_data = []
 	mode_of_freqs = {}
 	for snapshot in lst_of_data:
 		# results contains: frequency, loction in sanpshot, mean of db.
-		results = find_peaks(snapshot[0], 0)  # TODO - send average to the find_peaks
+		results = find_peaks(snapshot[0], average_DB)
+
+
 		for index in results[1]:
 			if index >= 2:  # ignore low frequencies because of nosies
 				if index not in mode_of_freqs: # count how many time specific frequency is in the data
@@ -80,7 +83,8 @@ def calc_angle(lst_of_data, counter):
 				else:
 					mode_of_freqs[index] += 1
 		peaks_in_data.append(results)
-
+	# for average DB filtering (meaning - ignore signals that weaker than the average noise around the user)
+	# average_DB = ((average_DB * (RATE_OF_AVERAGING - 1)) + results[2]) / (RATE_OF_AVERAGING)
 	location_of_real_peaks_in_data = []
 	for index in mode_of_freqs:
 		if mode_of_freqs[index] >= THRESHOLD_FOR_MODE:
@@ -126,7 +130,12 @@ def find_peaks(raw_signal, avr):
 	db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
 	result = signal.find_peaks(db_of_yf, height=max(30, avr))
 	# TODO - should I return the db of the peaks? for deciding which freq to choose? no idea
-	return [xf[result[0]], result[0],  db_of_yf.mean()]
+	# print(result[1])
+	realDB = result[1]['peak_heights']
+	# print(typ)
+	if realDB.size == 0:
+		realDB=np.append(realDB,[0])
+	return [xf[result[0]], result[0], realDB.mean()]
 
 
 
@@ -193,10 +202,14 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# print(np.abs(R),"\n" ,np.angle(R), "\n\n\n")
 	'''now, R is N*N matrix with rank M. meaning, there is N-M eigenvectors corresponding to the zero eigenvalue'''
 	eigenvalues, eigenvectors = np.linalg.eig(R)
-
+	# print(eigenvalues,"\n", eigenvectors)
+	# print("\n\n\n\n\n\n")
 	idx = eigenvalues.argsort()
 	eigenvalues = eigenvalues[idx]
-	eigenvectors = eigenvectors[:, idx]
+	eigenvectors = eigenvectors[idx]
+	# print(eigenvalues, "\n\n\n", eigenvectors)
+
+	# exit(123)
 
 	# np.set_printoptions(suppress=True,
 	#                     formatter={'float_kind': '{:f}'.format})
@@ -208,7 +221,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# todo - how to continue? for 1<=m<=3, find the N-M smallest |lambda|s, take their eigenvectors.
     # TODO - equ. 50 from the paper should work, S is a complex vector r = 1, phi = Delta_Phi that we find in potential_phi(). find the M phis that give as the maxest values
 
-	M = 2
+	M = 1
 	nprect = np.vectorize(rect)
 	temp = potential_phi(freq)
 	s_phi = nprect(1, temp)
@@ -230,8 +243,9 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	j = 0
 	for angle in s_phi:
 		result = 0
+		# assert len(eigenvalues) - M == 3
 		for i in range(len(eigenvalues) - M):
-			result += np.square(np.abs(np.dot(eigenvectors[i].conj().T, angle)))
+			result += np.square(np.abs(np.dot(eigenvectors[i], angle.conj().T)))
 			# print(i, DB_of_eigenvalues[i], end=" ")
 		# print(j)
 		j += 1
