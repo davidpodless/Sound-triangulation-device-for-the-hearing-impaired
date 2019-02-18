@@ -1,23 +1,12 @@
 from kivy.app import App
 from kivy.uix.widget import Widget
 
-
-class PongGame(Widget):
-	pass
-
-
-class PongApp(App):
-	def build(self):
-		return PongGame()
+from graphics.SoundCircle import SoundCircleApp
 
 
 def main():
-	PongApp().run()
+	SoundCircleApp().run()
 
 
 if __name__ == '__main__':
 	main()
-
-#
-# if __name__ == '__main__':
-#     main()
