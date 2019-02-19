@@ -5,7 +5,7 @@ from collections import deque
 import wave
 from scipy.io import wavfile
 import numpy as np
-
+import collections
 # import recording
 import computing
 from systemConstants import *
@@ -77,5 +77,6 @@ if __name__ == '__main__':
 				mode[result[1]] = 1
 			else:
 				mode[result[1]] += 1
-
-	print(mode)
+	ordered_mode = collections.OrderedDict(mode)
+	print(sorted(mode.items(), key=lambda x:x[1])
+)

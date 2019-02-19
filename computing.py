@@ -190,16 +190,15 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	for vector in vector_of_signals:
 		normalized = vector[0]
 		for i in range(len(vector)):
-			vector[i] /= normalized
-			# vector[i] = rect(1, np.angle(vector[i]))
-			# print(np.abs(vector[i]), end="\t")
+			vector[i] = rect(1, np.angle(vector[i]) - np.angle(normalized))
+			# print(np.angle(vector[i]), end="\t")
 		# print("\n")
 		# print("tada: ", vector[0])
 		R += np.outer(vector, vector.conj().T)
 	# exit(111)
 	R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
 
-	# print(np.abs(R),"\n" ,np.angle(R), "\n\n\n")
+	# print(R,"\n\n",np.abs(R),"\n\n" ,np.angle(R), "\n\n\n")
 	'''now, R is N*N matrix with rank M. meaning, there is N-M eigenvectors corresponding to the zero eigenvalue'''
 	eigenvalues, eigenvectors = np.linalg.eig(R)
 	# print(eigenvalues,"\n", eigenvectors)
@@ -207,7 +206,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	idx = eigenvalues.argsort()
 	eigenvalues = eigenvalues[idx]
 	eigenvectors = eigenvectors[idx]
-	# print(eigenvalues, "\n\n\n", eigenvectors)
+	print("eigenvalues: \n",eigenvalues, "\n\n\n", "eigenvectors: \n", eigenvectors, "\n\n\n\n\n\n\n\n")
 
 	# exit(123)
 
@@ -225,12 +224,12 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	nprect = np.vectorize(rect)
 	temp = potential_phi(freq)
 	s_phi = nprect(1, temp)
-	# print(s_phi[2])
+	# print(np.angle(s_phi))
 
 	# just for proving a point:
-	for j in range(len(s_phi)):
-		for i in range(4):
-			s_phi[j] = rect(np.abs(R[i][i]), temp[j][i])
+	# for j in range(len(s_phi)):
+	# 	for i in range(4):
+	# 		s_phi[j] = rect(np.abs(R[i][i]), temp[j][i])
 			# print(R[i][i])
 	# print("\n\n\n\n\n")
 
