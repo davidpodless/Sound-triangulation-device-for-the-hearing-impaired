@@ -108,7 +108,8 @@ def calc_angle(lst_of_data, counter):
 	to_return = []
 	# exit()
 	for index, fft_vector in enumerate(separated_vector_for_music):
-		to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], counter))
+		# to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], counter))
+		to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector))))
 	# print(to_return)
 	# exit(1)
 	return to_return
@@ -193,7 +194,13 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 			vector[i] = rect(1, np.angle(vector[i]) - np.angle(normalized))
 			# print(np.angle(vector[i]), end="\t")
 		# print("\n")
-		# print("tada: ", vector[0])
+		# print("tada: ", vector)
+		nprect = np.vectorize(rect)
+		temp = potential_phi(freq)
+		s_phi = nprect(1, temp)
+		# print("s_phi: ", s_phi[45])
+		# print("\n\n\n")
+		# exit()
 		R += np.outer(vector, vector.conj().T)
 	# exit(111)
 	R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
@@ -206,7 +213,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	idx = eigenvalues.argsort()
 	eigenvalues = eigenvalues[idx]
 	eigenvectors = eigenvectors[idx]
-	print("eigenvalues: \n",eigenvalues, "\n\n\n", "eigenvectors: \n", eigenvectors, "\n\n\n\n\n\n\n\n")
+	# print("eigenvalues: \n",eigenvalues, "\n\n\n", "eigenvectors: \n", eigenvectors, "\n\n\n\n\n\n\n\n")
 
 	# exit(123)
 
@@ -254,6 +261,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# title = str(counter) +" " + str(freq)
 	# plt.title(title)
 	# plt.show()
+	# exit(1)
 	# print(P_MUSIC_phi)
 	# print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
 	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS # TODO - return the M maxes, not only 1
@@ -281,17 +289,41 @@ def one_signal_algorithm(peaks):
 	this is the naive and not necessarily work approach.
 	'''
 	to_return = []
+	s_phi = potential_phi(peaks[0])
 	if peaks:
-		for frequency in peaks:
-			angle = frequency[1]
-			# print(frequency[0], angle)
-			tests = potential_phi(frequency[0])
+		for vector in peaks[1]:
+			normalized = vector[0]
+			for i in range(len(vector)):
+				vector[i] -= normalized
+		# vector = np.concatenate(peaks[1])
+		# print(peaks[1] % MOD_2_PI)
+		# print(s_phi[40])
+		final_angle = 0
+		for result in peaks[1]:
+			angle = result % MOD_2_PI
 			norm = []
-			for i in range(len(tests)):
-				norm.append(np.linalg.norm((tests[i] - angle)))
-			index = np.argmin(norm)
-			# print(frequency[0], index, norm[index], tests[index], angle)
-			# string = str(frequency[0]) + ": the angle is " + str(index) + " and the db is " + str(frequency[1])
-			# to_return.append(string)
-			to_return.append((frequency[0], ANGLE_OF_DIRECTIONS*index))
+			for i in range(len(s_phi)):
+				norm.append(np.linalg.norm((s_phi[i] - angle)))
+			final_angle += np.argmin(norm)
+			# x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
+			# plt.plot(x, norm)
+			# title = str(counter) +" " + str(freq)
+			# plt.title(title)
+			# plt.show()
+			# print(norm[np.argmin(norm)])
+		# exit(1)
+		final_angle /= NUM_OF_SNAPSHOTS_FOR_MUSIC
+		# for frequency in peaks:
+		# 	angle = frequency[1]
+		# 	# print(frequency[0], angle)
+		# 	s_phi = potential_phi(frequency[0])
+		# 	norm = []
+		# 	for i in range(len(s_phi)):
+		# 		norm.append(np.linalg.norm((s_phi[i] - angle)))
+		# 	index = np.argmin(norm)
+		# 	# print(frequency[0], index, norm[index], tests[index], angle)
+		# 	# string = str(frequency[0]) + ": the angle is " + str(index) + " and the db is " + str(frequency[1])
+		# 	# to_return.append(string)
+		to_return.append((peaks[0], final_angle))
+		print(final_angle)
 	return to_return
