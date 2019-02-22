@@ -288,23 +288,26 @@ def one_signal_algorithm(peaks):
 	:return: the direction which the signal come from in a tuple (freq, direction, db of the signal)
 	this is the naive and not necessarily work approach.
 	'''
+	# if peaks[0] > 1699:
+	# 	return
+	print(peaks[0])
 	to_return = []
 	s_phi = potential_phi(peaks[0])
 	if peaks:
 		for vector in peaks[1]:
 			normalized = vector[0]
 			for i in range(len(vector)):
-				vector[i] -= normalized
+				vector[i] = (vector[i] - normalized) % MOD_2_PI
 		# vector = np.concatenate(peaks[1])
 		# print(peaks[1] % MOD_2_PI)
 		# print(s_phi[40])
-		final_angle = 0
-		for result in peaks[1]:
-			angle = result % MOD_2_PI
-			norm = []
-			for i in range(len(s_phi)):
-				norm.append(np.linalg.norm((s_phi[i] - angle)))
-			final_angle += np.argmin(norm)
+		final_angle = peaks[1][0]
+		for angle in peaks[1]:
+			print(angle)
+			if (final_angle == angle).all():
+				continue
+			final_angle += angle
+
 			# x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
 			# plt.plot(x, norm)
 			# title = str(counter) +" " + str(freq)
@@ -313,6 +316,13 @@ def one_signal_algorithm(peaks):
 			# print(norm[np.argmin(norm)])
 		# exit(1)
 		final_angle /= NUM_OF_SNAPSHOTS_FOR_MUSIC
+		print("avrage: ", final_angle)
+		# print(s_phi[45])
+		# exit(12)
+		norm = []
+		for i in range(len(s_phi)):
+			norm.append(np.linalg.norm((s_phi[i] - final_angle)))
+		final_angle = np.argmin(norm)
 		# for frequency in peaks:
 		# 	angle = frequency[1]
 		# 	# print(frequency[0], angle)
@@ -324,6 +334,6 @@ def one_signal_algorithm(peaks):
 		# 	# print(frequency[0], index, norm[index], tests[index], angle)
 		# 	# string = str(frequency[0]) + ": the angle is " + str(index) + " and the db is " + str(frequency[1])
 		# 	# to_return.append(string)
-		to_return.append((peaks[0], final_angle))
-		print(final_angle)
+		to_return.append((peaks[0], final_angle*ANGLE_OF_DIRECTIONS))
+		# print(peaks[0], final_angle)
 	return to_return
