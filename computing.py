@@ -154,7 +154,7 @@ def potential_phi(freq):
 		# results.append(0)
 
 		rads = math.radians(i*ANGLE_OF_DIRECTIONS)
-		deltaX = [0, D * math.cos(rads), math.sqrt(2) * D * math.cos((PI/4) - rads), D * math.cos(PI/2 - rads)]
+		deltaX = [0, D * math.cos(rads), math.sqrt(2) * D * math.cos((PI/4) - rads), D * math.sin(rads)]
 		# phase approach:
 		phaseChange = (2*PI*freq / SPEED_OF_SOUND)
 		# phaseChangeArray = [phaseChange, phaseChange, phaseChange, phaseChange]
@@ -288,24 +288,24 @@ def one_signal_algorithm(peaks):
 	:return: the direction which the signal come from in a tuple (freq, direction, db of the signal)
 	this is the naive and not necessarily work approach.
 	'''
-	# if peaks[0] > 1699:
-	# 	return
-	print(peaks[0])
+	if peaks[0] < 100:
+		return
+	# print(peaks[0])
 	to_return = []
 	s_phi = potential_phi(peaks[0])
 	if peaks:
 		for vector in peaks[1]:
 			normalized = vector[0]
 			for i in range(len(vector)):
-				vector[i] = (vector[i] - normalized) % MOD_2_PI
+				vector[i] = (vector[i] - normalized) % MOD_2_PI - NOISE_CANCELING
+
 		# vector = np.concatenate(peaks[1])
 		# print(peaks[1] % MOD_2_PI)
 		# print(s_phi[40])
-		final_angle = peaks[1][0]
+		final_angle = np.zeros(shape=(1,4), dtype=float)
+
 		for angle in peaks[1]:
-			print(angle)
-			if (final_angle == angle).all():
-				continue
+			# print(angle)
 			final_angle += angle
 
 			# x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
@@ -316,13 +316,17 @@ def one_signal_algorithm(peaks):
 			# print(norm[np.argmin(norm)])
 		# exit(1)
 		final_angle /= NUM_OF_SNAPSHOTS_FOR_MUSIC
-		print("avrage: ", final_angle)
+		# print("avrage: ", final_angle)
+		final_angle = final_angle[0]
+		# math_angle = [math.acos(final_angle[1])/D, math.acos(final_angle[2])/(math.sqrt(2) * D), math.asin(final_angle[3])/D]
+		# print(math_angle)
 		# print(s_phi[45])
 		# exit(12)
 		norm = []
 		for i in range(len(s_phi)):
 			norm.append(np.linalg.norm((s_phi[i] - final_angle)))
 		final_angle = np.argmin(norm)
+		print(norm[final_angle])
 		# for frequency in peaks:
 		# 	angle = frequency[1]
 		# 	# print(frequency[0], angle)
