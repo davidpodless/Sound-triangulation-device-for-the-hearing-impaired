@@ -15,6 +15,7 @@ from scipy.stats.mstats import gmean
 import time
 from systemConstants import *
 from cmath import rect
+import statistics
 
 all_fft = []
 average_DB = 0
@@ -72,7 +73,7 @@ def calc_angle(lst_of_data, counter):
 	peaks_in_data = []
 	mode_of_freqs = {}
 	for snapshot in lst_of_data:
-		draw_graph(snapshot)
+		# draw_graph(snapshot)
 		# results contains: frequency, loction in sanpshot, mean of db.
 		results = find_peaks(snapshot[0], average_DB)
 
@@ -112,7 +113,7 @@ def calc_angle(lst_of_data, counter):
 	for index, fft_vector in enumerate(separated_vector_for_music):
 		# to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], counter))
 		# to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector))))
-		all_fft.append(lst_of_data)
+		all_fft.append(fft_vector)
 	# print(to_return)
 	# exit(1)
 	# return to_return
@@ -347,62 +348,80 @@ def one_signal_algorithm(peaks):
 	return to_return
 
 
-def draw_graph(data):
-	N = CHUNK
-	T = 1.0 / SAMPLE_RATE  # sample spacing
-	x = np.linspace(0.0, N * T, N)
-
-	xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
-	yf = scipy.fftpack.fft(data)
-	abs_of_yf = np.abs(yf[:N // 2])
-	magnitude_of_frequency = 2.0 / N * abs_of_yf
-	db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
-	angle_mics = np.angle(yf[:N//2])
-	for i, mic in enumerate(db_of_yf):
-		title = "mic " + str(i) + " db"
-		plt.plot(xf, mic[:N // 2])
-		plt.title(title)
-		plt.savefig(title + ".png", format="PNG", dpi = 720)
-		plt.close()
-
-		title = "mic " + str(i) + " angle"
-		plt.plot(xf, angle_mics[i][:N // 2])
-		plt.title(title)
-		plt.savefig(title + ".png", format="PNG", dpi=720)
-		plt.close()
-	exit(13)
-
-	# mics = [[],[],[],[]]
-	# for vector_of_snapshots in all_fft:
-	# 	# print(vector_of_snapshots)
-	# 	for snapshot in vector_of_snapshots:
-	# 		for i, mic in enumerate(snapshot):
-	# 			mics[i].append(mic)
-	# # scipy.fftpack.fft(mics)
-	# real = np.abs(mics)
-	# angle = np.angle(mics)
+def draw_graph():
+	# N = CHUNK
+	# T = 1.0 / SAMPLE_RATE  # sample spacing
+	# x = np.linspace(0.0, N * T, N)
 	#
-	# angle_norm = angle[0]
-	# angle_normalized = (angle - angle_norm) % MOD_2_PI
+	# xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
+	# yf = scipy.fftpack.fft(data)
+	# abs_of_yf = np.abs(yf[:N // 2])
+	# magnitude_of_frequency = 2.0 / N * abs_of_yf
+	# db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
+	# angle_mics = np.angle(yf[:N//2])
+	# for i, mic in enumerate(db_of_yf):
+	# 	title = "mic " + str(i) + " db"
+	# 	plt.plot(xf, mic[:N // 2])
+	# 	plt.title(title)
+	# 	plt.savefig(title + ".png", format="PNG", dpi = 720)
+	# 	plt.close()
 	#
-	# print(angle_normalized)
-	# for i in range(len(real)):
-	# 	title = "45 angle mic " + str(i)
-	# 	plt.plot(real[i], label="real")
-	# 	plt.title(title + " real")
-	# 	plt.savefig(title + " real" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
+	# 	title = "mic " + str(i) + " angle"
+	# 	plt.plot(xf, angle_mics[i][:N // 2])
+	# 	plt.title(title)
+	# 	plt.savefig(title + ".png", format="PNG", dpi=720)
 	# 	plt.close()
-	# 	plt.plot(20 * scipy.log10(2.0 / CHUNK * real[i]), label="real")
-	# 	plt.title(title + " DB")
-	# 	plt.savefig(title + " db" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
-	# 	plt.close()
-	# 	plt.plot(angle_normalized[i], label="phase normalized")
-	# 	# plt.plot(angle[i], label="phase normalized")
-	# 	# plt.legend()
-	# 	plt.title(title + " phase normalized")
-	# 	plt.savefig(title + " phase normalized" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
-	# 	plt.close()
-	# 	plt.plot(angle[i], label="phase")
-	# 	plt.title(title + " phase")
-	# 	plt.savefig(title + " phase" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
-	# 	plt.close()
+	# exit(13)
+
+	mics = [[],[],[],[]]
+	for vector_of_snapshots in all_fft:
+		# print(vector_of_snapshots)
+		for snapshot in vector_of_snapshots:
+			for i, mic in enumerate(snapshot):
+				mics[i].append(mic)
+	# scipy.fftpack.fft(mics)
+	real = np.abs(mics)
+	angle = np.angle(mics)
+
+	angle_norm = angle[0]
+	angle_normalized = (angle - angle_norm) % MOD_2_PI
+	location_for_save = "./graphs/"
+	print(angle_normalized)
+	for i in range(len(real)):
+		if i == 0:
+			continue
+		title = "0 angle mic " + str(i) + " inner product"
+		# plt.plot(real[i], label="real")
+		# plt.title(title + " real")
+		# plt.savefig(location_for_save + title + " real" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
+		# plt.close()
+		# plt.plot(20 * scipy.log10(2.0 / CHUNK * real[i]), label="real")
+		# plt.title(title + " DB")
+		# plt.savefig(location_for_save + title + " db" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
+		# plt.close()
+		nprect = np.vectorize(rect)
+		temp = potential_phi(600)
+		for_our_mic = []
+		for angle in temp:
+			for_our_mic.append(angle[i])
+		# exit(123)
+		s_phi = nprect(1, for_our_mic)
+		angle_from_mic = angle_normalized[i]
+		mean_complex = statistics.mean(angle_from_mic)
+		print(mean_complex)
+		complex_from_mic = rect(1, mean_complex)
+
+		results = np.inner(s_phi, complex_from_mic)
+
+		plt.plot(results, label="phase normalized")
+		# plt.plot(angle[i], label="phase normalized")
+		# plt.legend()
+		plt.title(title)
+		plt.savefig(location_for_save + title + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
+		# plt.show()
+		# exit(123)
+		plt.close()
+		# plt.plot(angle[i], label="phase")
+		# plt.title(title + " phase")
+		# plt.savefig(location_for_save + title + " phase" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
+		# plt.close()
