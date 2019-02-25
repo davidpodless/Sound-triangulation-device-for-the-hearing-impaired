@@ -372,56 +372,36 @@ def draw_graph():
 	# 	plt.savefig(title + ".png", format="PNG", dpi=720)
 	# 	plt.close()
 	# exit(13)
-
+	nprect = np.vectorize(rect)
+	angle_from_math = potential_phi(600)
 	mics = [[],[],[],[]]
+	mean_angle = 0
+	len_of_vector_of_snapshots = int(len(all_fft[0]))
+	x = np.linspace(0.0, 360, NUM_OF_DIRECTIONS)
+	s_phi = nprect(1, angle_from_math)
+	title = "inner product for 45 angle"
+	location_to_save = "./graphs/"
 	for vector_of_snapshots in all_fft:
 		# print(vector_of_snapshots)
 		for snapshot in vector_of_snapshots:
-			for i, mic in enumerate(snapshot):
-				mics[i].append(mic)
-	# scipy.fftpack.fft(mics)
-	real = np.abs(mics)
-	angle = np.angle(mics)
+			angle_tag = np.angle(snapshot)
+			angle_tag_norm = angle_tag[0]
+			angle_tag_normalized = (angle_tag - angle_tag_norm) % MOD_2_PI
+			mean_angle += angle_tag_normalized
+			complex_from_mic = nprect(1, angle_tag_normalized)
+			results = np.dot(s_phi, complex_from_mic)
+			plt.plot(x, np.angle(results), label="phase normalized")
+			# print(len(s_phi), len(s_phi[0]), len(complex_from_mic), len(results), results[0])
+	plt.savefig(location_to_save+"all " + title + ".png", format=FORMAT_TO_SAVE, dpi = 720)
+	plt.close()
 
-	angle_norm = angle[0]
-	angle_normalized = (angle - angle_norm) % MOD_2_PI
-	location_for_save = "./graphs/"
-	print(angle_normalized)
-	for i in range(len(real)):
-		if i == 0:
-			continue
-		title = "90 angle mic " + str(i) + " inner product"
-		# plt.plot(real[i], label="real")
-		# plt.title(title + " real")
-		# plt.savefig(location_for_save + title + " real" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
-		# plt.close()
-		# plt.plot(20 * scipy.log10(2.0 / CHUNK * real[i]), label="real")
-		# plt.title(title + " DB")
-		# plt.savefig(location_for_save + title + " db" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
-		# plt.close()
-		nprect = np.vectorize(rect)
-		temp = potential_phi(600)
-		for_our_mic = []
-		for angle in temp:
-			for_our_mic.append(angle[i])
-		# exit(123)
-		s_phi = nprect(1, for_our_mic)
-		angle_from_mic = angle_normalized[i]
-		for j in range(len(angle_from_mic)):
+	mean_angle /= (len(all_fft) * len_of_vector_of_snapshots)
 
-			complex_from_mic = rect(1, angle_from_mic[j])
-
-			results = np.inner(s_phi, complex_from_mic)
-
-			plt.plot(results, label="phase normalized")
-			# plt.plot(angle[i], label="phase normalized")
-			# plt.legend()
-		plt.title(title + " each one")
-		plt.savefig(location_for_save + title + " each one.png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
-		# plt.show()
-		# exit(123)
-		plt.close()
-		# plt.plot(angle[i], label="phase")
-		# plt.title(title + " phase")
-		# plt.savefig(location_for_save + title + " phase" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
-		# plt.close()
+	mean_complex = nprect(1, mean_angle)
+	# print(np.abs(s_phi))
+	results = np.dot(s_phi, mean_complex)
+	# print(np.abs(results))
+	plt.plot(x, np.angle(results))
+	plt.savefig(location_to_save+title + ".png", format=FORMAT_TO_SAVE, dpi=720)
+	plt.close()
+	# plt.show()
