@@ -48,9 +48,9 @@ def run():
 	plt.plot(x, mic2, label="mic2")
 	plt.plot(x, mic3, label="mic3")
 	plt.legend()
-	# title = str(counter) +" " + str(freq)
-	# plt.title(title)
-	plt.show()
+	title = "Expected result because math"
+	plt.title(title)
+	plt.savefig("angle graph.png", format="PNG", dpi=720)
 
 
 if __name__=="__main__":
