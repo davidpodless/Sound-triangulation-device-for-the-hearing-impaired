@@ -16,7 +16,7 @@ import time
 from systemConstants import *
 from cmath import rect
 
-
+all_fft = []
 average_DB = 0
 FORMAT_TO_SAVE = 'png'
 
@@ -107,12 +107,15 @@ def calc_angle(lst_of_data, counter):
 	# print(xf[location_of_real_peaks_in_data])
 	to_return = []
 	# exit()
+	global all_fft
 	for index, fft_vector in enumerate(separated_vector_for_music):
 		# to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], counter))
-		to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector))))
+		# to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector))))
+		all_fft.append(fft_vector)
 	# print(to_return)
 	# exit(1)
-	return to_return
+	# return to_return
+
 
 def find_peaks(raw_signal, avr):
 	'''
@@ -135,7 +138,7 @@ def find_peaks(raw_signal, avr):
 	realDB = result[1]['peak_heights']
 	# print(typ)
 	if realDB.size == 0:
-		realDB=np.append(realDB,[0])
+		realDB = np.append(realDB, [0])
 	return [xf[result[0]], result[0], realDB.mean()]
 
 
@@ -341,3 +344,36 @@ def one_signal_algorithm(peaks):
 		to_return.append((peaks[0], final_angle*ANGLE_OF_DIRECTIONS))
 		# print(peaks[0], final_angle)
 	return to_return
+
+
+def draw_graph():
+	mics = [[],[],[],[]]
+	for vector_of_snapshots in all_fft:
+		# print(vector_of_snapshots)
+		for snapshot in vector_of_snapshots:
+			for i, mic in enumerate(snapshot):
+				mics[i].append(mic)
+
+	real = np.abs(mics)
+	angle = np.angle(mics)
+
+	angle_norm = angle[0]
+	angle_normalized = (angle - angle_norm) % MOD_2_PI
+
+	print(angle_normalized)
+	for i in range(len(real)):
+		title = "45 angle mic " + str(i)
+		plt.plot(real[i], label="real")
+		plt.title(title + " real")
+		plt.savefig(title + " real" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
+		plt.close()
+		plt.plot(angle_normalized[i], label="phase normalized")
+		# plt.plot(angle[i], label="phase normalized")
+		# plt.legend()
+		plt.title(title + " phase normalized")
+		plt.savefig(title + " phase normalized" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
+		plt.close()
+		plt.plot(angle[i], label="phase")
+		plt.title(title + " phase")
+		plt.savefig(title + " phase" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
+		plt.close()
