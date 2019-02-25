@@ -390,7 +390,7 @@ def draw_graph():
 	for i in range(len(real)):
 		if i == 0:
 			continue
-		title = "0 angle mic " + str(i) + " inner product"
+		title = "90 angle mic " + str(i) + " inner product"
 		# plt.plot(real[i], label="real")
 		# plt.title(title + " real")
 		# plt.savefig(location_for_save + title + " real" + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
@@ -407,17 +407,17 @@ def draw_graph():
 		# exit(123)
 		s_phi = nprect(1, for_our_mic)
 		angle_from_mic = angle_normalized[i]
-		mean_complex = statistics.mean(angle_from_mic)
-		print(mean_complex)
-		complex_from_mic = rect(1, mean_complex)
+		for j in range(len(angle_from_mic)):
 
-		results = np.inner(s_phi, complex_from_mic)
+			complex_from_mic = rect(1, angle_from_mic[j])
 
-		plt.plot(results, label="phase normalized")
-		# plt.plot(angle[i], label="phase normalized")
-		# plt.legend()
-		plt.title(title)
-		plt.savefig(location_for_save + title + ".png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
+			results = np.inner(s_phi, complex_from_mic)
+
+			plt.plot(results, label="phase normalized")
+			# plt.plot(angle[i], label="phase normalized")
+			# plt.legend()
+		plt.title(title + " each one")
+		plt.savefig(location_for_save + title + " each one.png", format=FORMAT_TO_SAVE, dpi=1080, linewidth=0.005)
 		# plt.show()
 		# exit(123)
 		plt.close()
