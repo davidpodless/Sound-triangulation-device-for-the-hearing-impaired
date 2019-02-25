@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
 
 	computingThread.join()
-	computing.draw_graph()
+	# computing.draw_graph()
 	mode = {}
 	# while results:
 
