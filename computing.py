@@ -379,7 +379,7 @@ def draw_graph():
 	len_of_vector_of_snapshots = int(len(all_fft[0]))
 	x = np.linspace(0.0, 360, NUM_OF_DIRECTIONS)
 	s_phi = nprect(1, angle_from_math)
-	title = "inner product for 45 angle"
+	title = "inner product for 0 angle"
 	location_to_save = "./graphs/"
 	for vector_of_snapshots in all_fft:
 		# print(vector_of_snapshots)
@@ -389,9 +389,12 @@ def draw_graph():
 			angle_tag_normalized = (angle_tag - angle_tag_norm) % MOD_2_PI
 			mean_angle += angle_tag_normalized
 			complex_from_mic = nprect(1, angle_tag_normalized)
-			results = np.dot(s_phi, complex_from_mic)
-			plt.plot(x, np.angle(results), label="phase normalized")
+			results = []
+			for phi in s_phi:
+				results.append(np.vdot(phi, complex_from_mic))
+			plt.plot(x, np.abs(results), label="phase normalized")
 			# print(len(s_phi), len(s_phi[0]), len(complex_from_mic), len(results), results[0])
+	plt.title(title)
 	plt.savefig(location_to_save+"all " + title + ".png", format=FORMAT_TO_SAVE, dpi = 720)
 	plt.close()
 
@@ -399,9 +402,12 @@ def draw_graph():
 
 	mean_complex = nprect(1, mean_angle)
 	# print(np.abs(s_phi))
-	results = np.dot(s_phi, mean_complex)
+	results = []
+	for phi in s_phi:
+		results.append(np.vdot(phi, mean_complex))
 	# print(np.abs(results))
-	plt.plot(x, np.angle(results))
+	plt.plot(x, np.abs(results))
+	plt.title(title)
 	plt.savefig(location_to_save+title + ".png", format=FORMAT_TO_SAVE, dpi=720)
 	plt.close()
 	# plt.show()
