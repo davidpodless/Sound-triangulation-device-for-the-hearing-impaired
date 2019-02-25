@@ -19,7 +19,7 @@ newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./wav_files') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./wav_files/48k_600_0_output.wav']
+	return ['./wav_files/48k_1500_0_output.wav']
 
 
 
@@ -65,14 +65,14 @@ if __name__ == '__main__':
 
 
 	computingThread.join()
-	computing.draw_graph()
+	# computing.draw_graph()
 	mode = {}
-	# while results:
-
-		# toPrint = results.pop()
-		# if toPrint == 0:
-		# 	continue
-		# print(toPrint)
+	while results:
+		#
+		toPrint = results.pop()
+		if toPrint == 0:
+			continue
+		print(toPrint)
 		# for result in toPrint:
 			# print(result[1])
 			# if result[1] not in mode:  # count how many time specific frequency is in the data

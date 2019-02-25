@@ -19,6 +19,7 @@ import statistics
 
 all_fft = []
 average_DB = 0
+frequency_for_draw = 0
 FORMAT_TO_SAVE = 'png'
 
 # TODO - instead of one CHUNK at a time, we need to take NUM_OF_SNAPSHOTS_FOR_MUSIC CHUNKs, we will compute fft for each one, the magnitude and the db of the signal, and the average then find the peaks of the average and find the sample corrolate with the average pick and use them for the MUSIC/FFT BASE algorithms
@@ -110,13 +111,16 @@ def calc_angle(lst_of_data, counter):
 	to_return = []
 	# exit()
 	global all_fft
+	global frequency_for_draw
 	for index, fft_vector in enumerate(separated_vector_for_music):
 		# to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], counter))
-		# to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector))))
-		all_fft.append(fft_vector)
+		to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector))))
+		# if(xf[location_of_real_peaks_in_data[index]] < 2000):
+		# 	frequency_for_draw = xf[location_of_real_peaks_in_data[index]]
+		# 	all_fft.append(fft_vector)
 	# print(to_return)
 	# exit(1)
-	# return to_return
+	return to_return
 
 
 def find_peaks(raw_signal, avr):
@@ -297,54 +301,32 @@ def one_signal_algorithm(peaks):
 		return
 	# print(peaks[0])
 	to_return = []
-	s_phi = potential_phi(peaks[0])
+	nprect = np.vectorize(rect)
+	s_phi = nprect(1,potential_phi(peaks[0]))
+
 	if peaks:
+		final_angle = rect(0, 1)
 		for vector in peaks[1]:
 			normalized = vector[0]
 			for i in range(len(vector)):
-				vector[i] = (vector[i] - normalized) % MOD_2_PI - NOISE_CANCELING
+				vector[i] -= normalized
+			# print(vector)
+			complex_vector = nprect(1, vector)
+			# assert (vector - np.angle(complex_vector) < 0.0001).all()
+			final_angle += complex_vector
+			# print(complex_vector)
 
-		# vector = np.concatenate(peaks[1])
-		# print(peaks[1] % MOD_2_PI)
-		# print(s_phi[40])
-		final_angle = np.zeros(shape=(1,4), dtype=float)
-
-		for angle in peaks[1]:
-			# print(angle)
-			final_angle += angle
-
-			# x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
-			# plt.plot(x, norm)
-			# title = str(counter) +" " + str(freq)
-			# plt.title(title)
-			# plt.show()
-			# print(norm[np.argmin(norm)])
-		# exit(1)
 		final_angle /= NUM_OF_SNAPSHOTS_FOR_MUSIC
+		# print(final_angle)
 		# print("avrage: ", final_angle)
-		final_angle = final_angle[0]
-		# math_angle = [math.acos(final_angle[1])/D, math.acos(final_angle[2])/(math.sqrt(2) * D), math.asin(final_angle[3])/D]
-		# print(math_angle)
-		# print(s_phi[45])
-		# exit(12)
-		norm = []
-		for i in range(len(s_phi)):
-			norm.append(np.linalg.norm((s_phi[i] - final_angle)))
-		final_angle = np.argmin(norm)
-		print(norm[final_angle])
-		# for frequency in peaks:
-		# 	angle = frequency[1]
-		# 	# print(frequency[0], angle)
-		# 	s_phi = potential_phi(frequency[0])
-		# 	norm = []
-		# 	for i in range(len(s_phi)):
-		# 		norm.append(np.linalg.norm((s_phi[i] - angle)))
-		# 	index = np.argmin(norm)
-		# 	# print(frequency[0], index, norm[index], tests[index], angle)
-		# 	# string = str(frequency[0]) + ": the angle is " + str(index) + " and the db is " + str(frequency[1])
-		# 	# to_return.append(string)
+		results = []
+		for phi in s_phi:
+			results.append(np.vdot(phi, final_angle))
+		final_angle = np.argmax(np.abs(results))
+
 		to_return.append((peaks[0], final_angle*ANGLE_OF_DIRECTIONS))
-		# print(peaks[0], final_angle)
+
+	# print(to_return)
 	return to_return
 
 
@@ -373,13 +355,12 @@ def draw_graph():
 	# 	plt.close()
 	# exit(13)
 	nprect = np.vectorize(rect)
-	angle_from_math = potential_phi(600)
-	mics = [[],[],[],[]]
-	mean_angle = 0
+	angle_from_math = potential_phi(frequency_for_draw)
+	mean_complex = rect(0,1)
 	len_of_vector_of_snapshots = int(len(all_fft[0]))
 	x = np.linspace(0.0, 360, NUM_OF_DIRECTIONS)
 	s_phi = nprect(1, angle_from_math)
-	title = "inner product for 0 angle"
+	title = "inner product for 90 angle 600HZ"
 	location_to_save = "./graphs/"
 	for vector_of_snapshots in all_fft:
 		# print(vector_of_snapshots)
@@ -387,8 +368,8 @@ def draw_graph():
 			angle_tag = np.angle(snapshot)
 			angle_tag_norm = angle_tag[0]
 			angle_tag_normalized = (angle_tag - angle_tag_norm) % MOD_2_PI
-			mean_angle += angle_tag_normalized
 			complex_from_mic = nprect(1, angle_tag_normalized)
+			mean_complex += complex_from_mic
 			results = []
 			for phi in s_phi:
 				results.append(np.vdot(phi, complex_from_mic))
@@ -398,9 +379,7 @@ def draw_graph():
 	plt.savefig(location_to_save+"all " + title + ".png", format=FORMAT_TO_SAVE, dpi = 720)
 	plt.close()
 
-	mean_angle /= (len(all_fft) * len_of_vector_of_snapshots)
-
-	mean_complex = nprect(1, mean_angle)
+	mean_complex /= (len(all_fft) * len_of_vector_of_snapshots)
 	# print(np.abs(s_phi))
 	results = []
 	for phi in s_phi:
@@ -408,6 +387,6 @@ def draw_graph():
 	# print(np.abs(results))
 	plt.plot(x, np.abs(results))
 	plt.title(title)
-	plt.savefig(location_to_save+title + ".png", format=FORMAT_TO_SAVE, dpi=720)
-	plt.close()
-	# plt.show()
+	# plt.savefig(location_to_save+title + ".png", format=FORMAT_TO_SAVE, dpi=720)
+	# plt.close()
+	plt.show()
