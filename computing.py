@@ -40,7 +40,7 @@ def extract_data(frames, results):
 		next_sample = 0
 		while type(next_sample) == int and frames:
 			next_sample = frames.pop()
-		if frames:
+		if next_sample:
 			list_of_data_sent_to_calc = []
 			for frame in next_sample:
 				# 6 channels in one stream
@@ -118,7 +118,7 @@ def calc_angle(lst_of_data, counter):
 		# if(xf[location_of_real_peaks_in_data[index]] < 2000):
 		# 	frequency_for_draw = xf[location_of_real_peaks_in_data[index]]
 		# 	all_fft.append(fft_vector)
-	# print(to_return)
+	print(to_return)
 	# exit(1)
 	return to_return
 

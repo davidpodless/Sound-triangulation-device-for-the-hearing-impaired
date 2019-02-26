@@ -34,14 +34,14 @@ def record(frames, foo):
     # for i in range(0, int(RESPEAKER_RATE / CHUNK * RECORD_SECONDS)):
     if not main.CHUNK_RECORDING:
         while True:
-            # print("recording live")
-            data = stream.read(CHUNK)
+            
+            data = stream.read(CHUNK, exception_on_overflow = False)
             frames.appendleft(data)
     else:
         counter = 0
         lst = []
         while True:
-            data = stream.read(CHUNK)
+            data = stream.read(CHUNK, exception_on_overflow = False)
             lst.append(data)
             counter = (counter + 1) % NUM_OF_SNAPSHOTS_FOR_MUSIC
             if counter == 0:
