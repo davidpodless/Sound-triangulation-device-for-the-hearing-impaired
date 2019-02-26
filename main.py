@@ -6,7 +6,7 @@ import wave
 from scipy.io import wavfile
 import numpy as np
 import collections
-# import recording
+import recording
 import computing
 from systemConstants import *
 '''this program uses MKS system'''
@@ -19,7 +19,7 @@ newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./wav_files') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./wav_files/48k_1500_0_output.wav']
+	return ['./wav_files/48k_600_45_output.wav']
 
 
 
@@ -54,13 +54,12 @@ if __name__ == '__main__':
 	# print(RECORD_BUFFER_MAX) todo: delete this
 	frames = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
 	results = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
-	# recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
-	fakeRecordingThread = threading.Thread(group=None, target=fake_record, name="fake recording thread", args=(getFileslist(), frames))
+	recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
+	# fakeRecordingThread = threading.Thread(group=None, target=fake_record, name="fake recording thread", args=(getFileslist(), frames))
 	computingThread = threading.Thread(group=None, target=computing.extract_data, name="compute thread", args=(frames, results))
 
-	# recordingThread.start()
-	fakeRecordingThread.start()
-	# fakeRecordingThread.join()
+	recordingThread.start()
+	# fakeRecordingThread.start()
 	computingThread.start()
 
 
