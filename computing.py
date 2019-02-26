@@ -194,7 +194,8 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	'''
 
 	''' In this function, N - number of mics, M number of signals'''
-
+	nprect = np.vectorize(rect)
+	s_phi = nprect(1, potential_phi(freq))
 	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=np.complex64)
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
 	for vector in vector_of_signals:
@@ -204,9 +205,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 			# print(np.angle(vector[i]), end="\t")
 		# print("\n")
 		# print("tada: ", vector)
-		nprect = np.vectorize(rect)
-		temp = potential_phi(freq)
-		s_phi = nprect(1, temp)
+
 		# print("s_phi: ", s_phi[45])
 		# print("\n\n\n")
 		# exit()
@@ -237,9 +236,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
     # TODO - equ. 50 from the paper should work, S is a complex vector r = 1, phi = Delta_Phi that we find in potential_phi(). find the M phis that give as the maxest values
 
 	M = 1
-	nprect = np.vectorize(rect)
-	temp = potential_phi(freq)
-	s_phi = nprect(1, temp)
+
 	# print(np.angle(s_phi))
 
 	# just for proving a point:
