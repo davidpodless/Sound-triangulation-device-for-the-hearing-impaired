@@ -57,15 +57,15 @@ if __name__ == '__main__':
 	recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
 	# fakeRecordingThread = threading.Thread(group=None, target=fake_record, name="fake recording thread", args=(getFileslist(), frames))
 	computingThread = threading.Thread(group=None, target=computing.extract_data, name="compute thread", args=(frames, results))
-
+	computingThread.start()
 	recordingThread.start()
 	# fakeRecordingThread.start()
-	computingThread.start()
+	
 
 
-	computingThread.join()
+	# computingThread.join()
 	# computing.draw_graph()
-	mode = {}
+	'''mode = {}
 	while results:
 		#
 		toPrint = results.pop()
@@ -79,4 +79,4 @@ if __name__ == '__main__':
 			# else:
 			# 	mode[result[1]] += 1
 	# ordered_mode = collections.OrderedDict(mode)
-	# print(sorted(mode.items(), key=lambda x:x[1]))
+	# print(sorted(mode.items(), key=lambda x:x[1]))'''

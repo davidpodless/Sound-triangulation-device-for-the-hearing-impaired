@@ -40,7 +40,7 @@ def extract_data(frames, results):
 		next_sample = 0
 		while type(next_sample) == int and frames:
 			next_sample = frames.pop()
-		if frames:
+		if next_sample:
 			list_of_data_sent_to_calc = []
 			for frame in next_sample:
 				# 6 channels in one stream
@@ -52,16 +52,17 @@ def extract_data(frames, results):
 					# print(np.average(ch_data[i-1]))
 				# ch_data = ch_data - np.aveage(ch_data)
 				list_of_data_sent_to_calc.append(ch_data)
-
+			# print("we have a problem")
 			results.appendleft(calc_angle(list_of_data_sent_to_calc, thread_counter))
 			thread_counter += 1
 		else:
 			if is_still_empty:
-				break
+				time.sleep(0.005)
+				continue
 			else:
 				is_still_empty = True
 				print("sleeping")
-				time.sleep(0.005)
+				time.sleep(0.5)
 
 
 def calc_angle(lst_of_data, counter):
@@ -112,14 +113,17 @@ def calc_angle(lst_of_data, counter):
 	# exit()
 	global all_fft
 	global frequency_for_draw
+	# print("one test")
 	for index, fft_vector in enumerate(separated_vector_for_music):
+		# print("two test\t", index)
 		# to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], counter))
 		to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector))))
 		# if(xf[location_of_real_peaks_in_data[index]] < 2000):
 		# 	frequency_for_draw = xf[location_of_real_peaks_in_data[index]]
 		# 	all_fft.append(fft_vector)
-	# print(to_return)
+	print(to_return)
 	# exit(1)
+	# print("three test")
 	return to_return
 
 
@@ -299,7 +303,7 @@ def one_signal_algorithm(peaks):
 	'''
 	if peaks[0] < 100:
 		return
-	# print(peaks[0])
+	print(peaks[0])
 	to_return = []
 	nprect = np.vectorize(rect)
 	s_phi = nprect(1,potential_phi(peaks[0]))
