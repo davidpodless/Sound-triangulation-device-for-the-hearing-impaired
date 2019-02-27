@@ -113,8 +113,8 @@ def calc_angle(lst_of_data, counter):
 	global all_fft
 	global frequency_for_draw
 	for index, fft_vector in enumerate(separated_vector_for_music):
-		# to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], counter))
-		to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector))))
+		to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], 20 * scipy.log10(2.0 / N * np.abs(fft_vector))))
+		# to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector), 20 * scipy.log10(2.0 / N * np.abs(fft_vector)))))
 		# if(xf[location_of_real_peaks_in_data[index]] < 2000):
 		# 	frequency_for_draw = xf[location_of_real_peaks_in_data[index]]
 		# 	all_fft.append(fft_vector)
@@ -132,7 +132,6 @@ def find_peaks(raw_signal, avr):
 	N = CHUNK
 	T = 1.0 / SAMPLE_RATE  # sample spacing
 	x = np.linspace(0.0, N * T, N)
-
 	xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
 	yf = scipy.fftpack.fft(raw_signal)
 	abs_of_yf = np.abs(yf[:N // 2])
@@ -185,7 +184,7 @@ def average():
 	print("new value is: ", main.newNoise)
 
 
-def MUSIC_algorithm(vector_of_signals, freq, counter):
+def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 	'''
 	:param vector_of_signals: vector of NUM_OF_SNAPSHOTS_FOR_MUSIC snapshot, each snapshot contain signal in frequency freq
 	:param freq: the frequency of the signal
@@ -235,7 +234,15 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# todo - how to continue? for 1<=m<=3, find the N-M smallest |lambda|s, take their eigenvectors.
     # TODO - equ. 50 from the paper should work, S is a complex vector r = 1, phi = Delta_Phi that we find in potential_phi(). find the M phis that give as the maxest values
 
-	M = 1
+	M = 0
+	for i in eigenvalues:
+		if np.abs(i) > 0.001:
+			M += 1
+		else:
+			print(i)
+	if M == 4:
+		raise Exception
+	# exit(1)
 
 	# print(np.angle(s_phi))
 
@@ -253,15 +260,24 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# 	P_MUSIC_phi.append(np.square(np.abs(np.dot(test.conj().T,angle))))
 	# print(freq, np.argmax(P_MUSIC_phi))
 	j = 0
-	for angle in s_phi:
+	super_result = 0
+	for index, angle in enumerate(s_phi):
 		result = 0
 		# assert len(eigenvalues) - M == 3
 		for i in range(len(eigenvalues) - M):
-			result += np.square(np.abs(np.dot(eigenvectors[i], angle.conj().T)))
+			# print(np.abs(np.vdot(eigenvectors[i].T, angle)))
+			result += np.square(np.abs(np.vdot(eigenvectors[i].T, angle)))
+			if index == 45 or index == 315:
+				print(index, angle, np.square(np.abs(np.vdot(eigenvectors[i].T, angle))))
+
 			# print(i, DB_of_eigenvalues[i], end=" ")
-		# print(j)
+		# if index == 45 or index == 330:
+		# 	print(index, 1 / result)
+		# print(result)
+		super_result += result
 		j += 1
 		P_MUSIC_phi.append(1 / result)
+	print("average: ", super_result / (len(s_phi) * NUM_OF_MICS - M))
 	# x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
 	# plt.plot(x, P_MUSIC_phi)
 	# title = str(counter) +" " + str(freq)
@@ -271,7 +287,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# print(P_MUSIC_phi)
 	# print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
 	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS # TODO - return the M maxes, not only 1
-	return freq, final_angle
+	return freq, final_angle, statistics.mean(gmean(db_of_signal))
 	# exit(1)
 
 
@@ -290,18 +306,17 @@ def find_num_of_signals(eigenvalues): # todo - ask orr about this
 
 def one_signal_algorithm(peaks):
 	'''
-	:param peaks: list of tuples (freq, db of the signal, angle) that represent peaks in frequency
+	:param peaks: list of tuples (freq, angle, db of the signal) that represent peaks in frequency
 	:return: the direction which the signal come from in a tuple (freq, direction, db of the signal)
 	this is the naive and not necessarily work approach.
 	'''
-	if peaks[0] < 100:
-		return
-	# print(peaks[0])
+
 	to_return = []
 	nprect = np.vectorize(rect)
 	s_phi = nprect(1,potential_phi(peaks[0]))
-
 	if peaks:
+		if peaks[0] < 100:
+			return
 		final_angle = rect(0, 1)
 		for vector in peaks[1]:
 			normalized = vector[0]
@@ -320,8 +335,8 @@ def one_signal_algorithm(peaks):
 		for phi in s_phi:
 			results.append(np.vdot(phi, final_angle))
 		final_angle = np.argmax(np.abs(results))
-
-		to_return.append((peaks[0], final_angle*ANGLE_OF_DIRECTIONS))
+		db = statistics.mean(gmean(peaks[2]))
+		to_return.append((peaks[0], final_angle*ANGLE_OF_DIRECTIONS, db))
 
 	# print(to_return)
 	return to_return
