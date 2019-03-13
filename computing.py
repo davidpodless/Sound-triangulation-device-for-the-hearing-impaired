@@ -49,8 +49,6 @@ def extract_data(frames, results):
 				ch_data = [np.ndarray]*4
 				for i in range(1, 5):
 					ch_data[i-1] = np_data[i::6]
-					# print(np.average(ch_data[i-1]))
-				# ch_data = ch_data - np.aveage(ch_data)
 				list_of_data_sent_to_calc.append(ch_data)
 
 			results.appendleft(calc_angle(list_of_data_sent_to_calc, thread_counter))
@@ -66,47 +64,52 @@ def extract_data(frames, results):
 
 def calc_angle(lst_of_data, counter):
 	'''
-	:param lst_of_data: list of NUM_OF_SNAPSHOTS_FOR_MUSIC arrays, for each array: n=4, in each cell the signal from the ith mic
+	:param lst_of_data: list of NUM_OF_SNAPSHOTS_FOR_MUSIC arrays, for each array: n=4, in each cell the signal from the i-th mic
 	:param counter: for testing, counting how much into the signal the compute will go
 	:return: the frequency and the angles of the signal. in case where there is more than one frequency - for each one
 	'''
 	global average_DB
 	peaks_in_data = []
 	mode_of_freqs = {}
+	N = CHUNK
+	T = 1.0 / SAMPLE_RATE
+	xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
+	# find the frequencies of a signal
 	for snapshot in lst_of_data:
 		# draw_graph(snapshot)
 		# results contains: frequency, loction in sanpshot, mean of db.
 		results = find_peaks(snapshot[0], average_DB)
 
-
 		for index in results[1]:
-			if index >= 2:  # ignore low frequencies because of nosies
+			if xf[index] >= 100:  # ignore low frequencies because of nosies
 				if index not in mode_of_freqs: # count how many time specific frequency is in the data
 					mode_of_freqs[index] = 1
 				else:
 					mode_of_freqs[index] += 1
 		peaks_in_data.append(results)
+
 	# for average DB filtering (meaning - ignore signals that weaker than the average noise around the user)
 	# average_DB = ((average_DB * (RATE_OF_AVERAGING - 1)) + results[2]) / (RATE_OF_AVERAGING)
 	location_of_real_peaks_in_data = []
 	for index in mode_of_freqs:
+		# print(xf[index], mode_of_freqs[index])
 		if mode_of_freqs[index] >= THRESHOLD_FOR_MODE:
+			# print(xf[index])
 			location_of_real_peaks_in_data.append(index)
-
+	# print(xf)
+	# exit()
 	fft_signal = scipy.fftpack.fft(lst_of_data)
+	fft_signal = fft_signal[:,:,:N // 2]
 	# vector for all relevant frequencies
-	temp = fft_signal[:,:, location_of_real_peaks_in_data]
-
-	# each frequency in a special vector
+	# temp = fft_signal[:,:, location_of_real_peaks_in_data]
 	separated_vector_for_music = []
-	for i in range(len(location_of_real_peaks_in_data)):
+	for i in location_of_real_peaks_in_data:
+		# each frequency in a special vector
 		# angles_vector = np.angle()
-		separated_vector_for_music.append(temp[:, :, i])
+		separated_vector_for_music.append(fft_signal[:, :, i])
 
 	# print(separated_vector_for_music[0])
-	N = CHUNK
-	T = 1.0 / SAMPLE_RATE
-	xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
+
 	# print(xf[location_of_real_peaks_in_data])
 	to_return = []
 	# exit()
@@ -135,11 +138,16 @@ def find_peaks(raw_signal, avr):
 	xf = np.linspace(0.0, 1.0 / (2.0 * T), N / 2)
 	yf = scipy.fftpack.fft(raw_signal)
 	abs_of_yf = np.abs(yf[:N // 2])
+	# print(len(abs_of_yf), len(yf))
+	# exit(12)
 	magnitude_of_frequency = 2.0 / N * abs_of_yf
 	db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
 	result = signal.find_peaks(db_of_yf, height=max(30, avr))
 	# TODO - should I return the db of the peaks? for deciding which freq to choose? no idea
 	# print(result[1])
+	# plt.plot(xf, db_of_yf)
+	# plt.show()
+	# exit()
 	realDB = result[1]['peak_heights']
 	# print(typ)
 	if realDB.size == 0:
@@ -173,15 +181,6 @@ def potential_phi(freq):
 
 		lst_to_return.append(results)
 	return lst_to_return
-
-
-def average():
-	oldValue = main.averageNoiseArray.pop()
-	main.averageNoise = main.averageNoise - (oldValue / main.RECORD_BUFFER_MAX) + (
-				main.newNoise / main.RECORD_BUFFER_MAX)
-	print("average is: ", main.averageNoise)
-	print("old value is: ", oldValue)
-	print("new value is: ", main.newNoise)
 
 
 def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
@@ -221,7 +220,7 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 	eigenvalues = eigenvalues[idx]
 	eigenvectors = eigenvectors[idx]
 	# print("eigenvalues: \n",eigenvalues, "\n\n\n", "eigenvectors: \n", eigenvectors, "\n\n\n\n\n\n\n\n")
-
+	#
 	# exit(123)
 
 	# np.set_printoptions(suppress=True,
@@ -235,30 +234,21 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
     # TODO - equ. 50 from the paper should work, S is a complex vector r = 1, phi = Delta_Phi that we find in potential_phi(). find the M phis that give as the maxest values
 
 	M = 0
+	for i in np.abs(eigenvalues):
+		print(i)
+	# exit(12)
 	for i in eigenvalues:
-		if np.abs(i) > 0.001:
+		if np.abs(i) > 0.1: # TODO: when using pure sine - the lambdas are *very* small, there are a lot more noise when the siganl is not pure. is that an indacation that this is not the correct angle?
+			# TODO - the stupid way to check - run on all the frequencies and check which one will result in the correct angle.
+			# TODO 3: record two pure signals from two diffrent angles, what is the values of the np.abs(i)s?
 			M += 1
-		else:
-			print(i)
+		# else:
+			# print(np.abs(i))
 	if M == 4:
+		print(np.abs(eigenvalues))
 		raise Exception
-	# exit(1)
-
-	# print(np.angle(s_phi))
-
-	# just for proving a point:
-	# for j in range(len(s_phi)):
-	# 	for i in range(4):
-	# 		s_phi[j] = rect(np.abs(R[i][i]), temp[j][i])
-			# print(R[i][i])
-	# print("\n\n\n\n\n")
-
-	# assert (np.abs(np.angle(s_phi) - temp) < 0.0000001).all(), (freq, np.angle(s_phi) - temp)
-	# print((s_phi[5]))
+	# exit(12)
 	P_MUSIC_phi = []
-	# for angle in s_phi:
-	# 	P_MUSIC_phi.append(np.square(np.abs(np.dot(test.conj().T,angle))))
-	# print(freq, np.argmax(P_MUSIC_phi))
 	j = 0
 	super_result = 0
 	for index, angle in enumerate(s_phi):
@@ -277,13 +267,13 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 		super_result += result
 		j += 1
 		P_MUSIC_phi.append(1 / result)
-	print("average: ", super_result / (len(s_phi) * NUM_OF_MICS - M))
-	# x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
-	# plt.plot(x, P_MUSIC_phi)
+	# print("average: ", super_result / (len(s_phi) * NUM_OF_MICS - M))
+	x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
+	plt.plot(x, P_MUSIC_phi)
 	# title = str(counter) +" " + str(freq)
 	# plt.title(title)
-	# plt.show()
-	# exit(1)
+	plt.show()
+	exit(1)
 	# print(P_MUSIC_phi)
 	# print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
 	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS # TODO - return the M maxes, not only 1
@@ -335,8 +325,8 @@ def one_signal_algorithm(peaks):
 		for phi in s_phi:
 			results.append(np.vdot(phi, final_angle))
 		final_angle = np.argmax(np.abs(results))
-		db = statistics.mean(gmean(peaks[2]))
-		to_return.append((peaks[0], final_angle*ANGLE_OF_DIRECTIONS, db))
+		# db = statistics.mean(gmean(peaks[2]))
+		to_return.append((peaks[0], final_angle*ANGLE_OF_DIRECTIONS, 0))
 
 	# print(to_return)
 	return to_return

@@ -19,7 +19,7 @@ newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./wav_files') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./wav_files/48k_600_45_output.wav']
+	return ['./wav_files/48k_45_output.wav']
 
 
 
@@ -51,6 +51,7 @@ def fake_record(files, frames):
 
 
 if __name__ == '__main__':
+	# print(THRESHOLD_FOR_MODE)
 	# print(RECORD_BUFFER_MAX) todo: delete this
 	frames = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
 	results = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
