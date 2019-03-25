@@ -113,8 +113,8 @@ def calc_angle(lst_of_data, counter):
 	global all_fft
 	global frequency_for_draw
 	for index, fft_vector in enumerate(separated_vector_for_music):
-		to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], 20 * scipy.log10(2.0 / N * np.abs(fft_vector))))
-		# to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector), 20 * scipy.log10(2.0 / N * np.abs(fft_vector)))))
+		# to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], 20 * scipy.log10(2.0 / N * np.abs(fft_vector))))
+		to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], fft_vector, 20 * scipy.log10(2.0 / N * np.abs(fft_vector)))))
 		# if(xf[location_of_real_peaks_in_data[index]] < 2000):
 		# 	frequency_for_draw = xf[location_of_real_peaks_in_data[index]]
 		# 	all_fft.append(fft_vector)
@@ -236,13 +236,15 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 
 	M = 0
 	for i in eigenvalues:
-		if np.abs(i) > 0.001:
+		print(np.abs(i))
+		if np.abs(i) > 0.01:
 			M += 1
+			print(i)
 		else:
 			print(i)
 	if M == 4:
 		raise Exception
-	# exit(1)
+	exit(1)
 
 	# print(np.angle(s_phi))
 
@@ -267,8 +269,8 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 		for i in range(len(eigenvalues) - M):
 			# print(np.abs(np.vdot(eigenvectors[i].T, angle)))
 			result += np.square(np.abs(np.vdot(eigenvectors[i].T, angle)))
-			if index == 45 or index == 315:
-				print(index, angle, np.square(np.abs(np.vdot(eigenvectors[i].T, angle))))
+			# if index == 45 or index == 315:
+			# 	print(index, angle, np.square(np.abs(np.vdot(eigenvectors[i].T, angle))))
 
 			# print(i, DB_of_eigenvalues[i], end=" ")
 		# if index == 45 or index == 330:
@@ -310,7 +312,7 @@ def one_signal_algorithm(peaks):
 	:return: the direction which the signal come from in a tuple (freq, direction, db of the signal)
 	this is the naive and not necessarily work approach.
 	'''
-
+	# given_angle = np.angle()
 	to_return = []
 	nprect = np.vectorize(rect)
 	s_phi = nprect(1,potential_phi(peaks[0]))
@@ -318,7 +320,13 @@ def one_signal_algorithm(peaks):
 		if peaks[0] < 100:
 			return
 		final_angle = rect(0, 1)
-		for vector in peaks[1]:
+		counter = 0
+		for snapshot in peaks[1]:
+			vector = np.angle(snapshot)
+			db_of_vector = 20 * scipy.log10(2.0 / CHUNK * np.abs(snapshot))
+			if statistics.mean(db_of_vector) < 30:
+				# print(statistics.mean(db_of_vector))
+				continue
 			normalized = vector[0]
 			for i in range(len(vector)):
 				vector[i] -= normalized
@@ -326,9 +334,13 @@ def one_signal_algorithm(peaks):
 			complex_vector = nprect(1, vector)
 			# assert (vector - np.angle(complex_vector) < 0.0001).all()
 			final_angle += complex_vector
+			counter += 1
 			# print(complex_vector)
+		if counter < THRESHOLD_FOR_MODE:
+			return None
+		# print(counter)
+		final_angle /= counter
 
-		final_angle /= NUM_OF_SNAPSHOTS_FOR_MUSIC
 		# print(final_angle)
 		# print("avrage: ", final_angle)
 		results = []
