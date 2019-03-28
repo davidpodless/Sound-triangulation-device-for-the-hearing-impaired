@@ -308,19 +308,6 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 	return final_angle, final_angle_bla
 
 
-def find_num_of_signals(eigenvalues): # todo - ask orr about this
-	N = len(eigenvalues)
-	print(np.abs(eigenvalues))
-	MDL = []
-	for d in range(N-1):
-		L = -NUM_OF_SNAPSHOTS_FOR_MUSIC * (NUM_OF_MICS - 1) * np.log10(gmean(eigenvalues[d:N-1]) / np.mean(eigenvalues[d:N-1]))
-		MDL.append(L + 0.5*d*(2*NUM_OF_MICS - d)*np.log10(NUM_OF_SNAPSHOTS_FOR_MUSIC))
-		# print(L)
-	index = np.real(MDL).argmin()
-	# print(len(MDL))
-	return index
-
-
 def one_signal_algorithm(peaks):
 	'''
 	:param peaks: list of tuples (freq, angle, db of the signal) that represent peaks in frequency
