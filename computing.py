@@ -220,7 +220,6 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 	eigenvalues = eigenvalues[idx]
 	eigenvectors = eigenvectors[idx]
 	# print("eigenvalues: \n",eigenvalues, "\n\n\n", "eigenvectors: \n", eigenvectors, "\n\n\n\n\n\n\n\n")
-	#
 	# exit(123)
 
 	# np.set_printoptions(suppress=True,
@@ -242,12 +241,25 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 			# TODO - the stupid way to check - run on all the frequencies and check which one will result in the correct angle.
 			# TODO 3: record two pure signals from two different angles, what is the values of the np.abs(i)s?
 			M += 1
-		# else:
-			# print(np.abs(i))
+			print(i)
+		else:
+			print(i)
 	# if M == 4:
 	# 	print(np.abs(eigenvalues))
 		# raise Exception
-	# exit(12)
+	# exit(1)
+
+	# print(np.angle(s_phi))
+
+	# just for proving a point:
+	# for j in range(len(s_phi)):
+	# 	for i in range(4):
+	# 		s_phi[j] = rect(np.abs(R[i][i]), temp[j][i])
+			# print(R[i][i])
+	# print("\n\n\n\n\n")
+
+	# assert (np.abs(np.angle(s_phi) - temp) < 0.0000001).all(), (freq, np.angle(s_phi) - temp)
+	# print((s_phi[5]))
 	P_MUSIC_phi = []
 	j = 0
 	super_result = 0
@@ -308,7 +320,13 @@ def one_signal_algorithm(peaks):
 		if peaks[0] < 100:
 			return
 		final_angle = rect(0, 1)
-		for vector in peaks[1]:
+		counter = 0
+		for snapshot in peaks[1]:
+			vector = np.angle(snapshot)
+			db_of_vector = 20 * scipy.log10(2.0 / CHUNK * np.abs(snapshot))
+			if statistics.mean(db_of_vector) < 30:
+				# print(statistics.mean(db_of_vector))
+				continue
 			normalized = vector[0]
 			for i in range(len(vector)):
 				vector[i] -= normalized
@@ -316,9 +334,13 @@ def one_signal_algorithm(peaks):
 			complex_vector = nprect(1, vector)
 			# assert (vector - np.angle(complex_vector) < 0.0001).all()
 			final_angle += complex_vector
+			counter += 1
 			# print(complex_vector)
+		if counter < THRESHOLD_FOR_MODE:
+			return None
+		# print(counter)
+		final_angle /= counter
 
-		final_angle /= NUM_OF_SNAPSHOTS_FOR_MUSIC
 		# print(final_angle)
 		# print("avrage: ", final_angle)
 		results = []
