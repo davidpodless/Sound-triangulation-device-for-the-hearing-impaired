@@ -121,7 +121,7 @@ def calc_angle(lst_of_data, counter):
 		# if(xf[location_of_real_peaks_in_data[index]] < 2000):
 		# 	frequency_for_draw = xf[location_of_real_peaks_in_data[index]]
 		# 	all_fft.append(fft_vector)
-	print(to_return)
+	# print(to_return)
 	# exit(1)
 	return to_return
 
@@ -193,24 +193,23 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 
 	''' In this function, N - number of mics, M number of signals'''
 	nprect = np.vectorize(rect)
+	x = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
 	s_phi = nprect(1, potential_phi(freq))
-	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=np.complex64)
+	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=complex)
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
+	print(np.angle(vector_of_signals))
 	for vector in vector_of_signals:
 		normalized = vector[0]
+		# print(vector)
 		for i in range(len(vector)):
 			vector[i] = rect(1, np.angle(vector[i]) - np.angle(normalized))
-			# print(np.angle(vector[i]), end="\t")
-		# print("\n")
-		# print("tada: ", vector)
-
-		# print("s_phi: ", s_phi[45])
-		# print("\n\n\n")
-		# exit()
-		R += np.outer(vector, vector.conj().T)
-	# exit(111)
+			# vector[i] = rect(1, np.angle(vector[i]))
+		R = np.add(np.outer(vector, vector.conj()), R)
+	print(np.angle(vector_of_signals))
+	# exit(321)
 	R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
-
+	print(np.abs(R), np.angle(R))
+	exit(12)
 	# print(R,"\n\n",np.abs(R),"\n\n" ,np.angle(R), "\n\n\n")
 	'''now, R is N*N matrix with rank M. meaning, there is N-M eigenvectors corresponding to the zero eigenvalue'''
 	eigenvalues, eigenvectors = np.linalg.eig(R)
@@ -220,6 +219,21 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 	eigenvalues = eigenvalues[idx]
 	eigenvectors = eigenvectors[idx]
 	# print("eigenvalues: \n",eigenvalues, "\n\n\n", "eigenvectors: \n", eigenvectors, "\n\n\n\n\n\n\n\n")
+
+	# print(np.abs(eigenvalues[-1]), np.abs(eigenvectors[-1]), np.angle(eigenvectors[-1]))
+	tester = eigenvectors[-1]
+	# normalized = tester[0]
+	# for i in range(len(tester)):
+	# 	tester[i] = rect(1, np.angle(tester[i]) - np.angle(normalized))
+	# print(np.angle(tester))
+	print(np.angle(tester))
+	results = []
+	for phi in s_phi:
+		results.append(np.vdot(phi, tester))
+	# plt.plot(x, results)
+	# plt.show()
+	final_angle_bla = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
+	# print(final_angle_bla)
 	# exit(123)
 
 	# np.set_printoptions(suppress=True,
@@ -233,17 +247,17 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
     # TODO - equ. 50 from the paper should work, S is a complex vector r = 1, phi = Delta_Phi that we find in potential_phi(). find the M phis that give as the maxest values
 
 	M = 0
-	for i in np.abs(eigenvalues):
-		print(i)
+	# for i in np.abs(eigenvalues):
+		# print(i)
 	# exit(12)
 	for i in eigenvalues:
 		if np.abs(i) > 0.1: # TODO: when using pure sine - the lambdas are *very* small, there are a lot more noise when the siganl is not pure. is that an indacation that this is not the correct angle?
 			# TODO - the stupid way to check - run on all the frequencies and check which one will result in the correct angle.
 			# TODO 3: record two pure signals from two different angles, what is the values of the np.abs(i)s?
 			M += 1
-			print(i)
-		else:
-			print(i)
+			# print(i)
+		# else:
+		# 	print(i)
 	# if M == 4:
 	# 	print(np.abs(eigenvalues))
 		# raise Exception
@@ -278,10 +292,10 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 		# print(result)
 		super_result += result
 		j += 1
-		P_MUSIC_phi.append(1 / result)
+		P_MUSIC_phi.append(1 / (result+0.0000001))
 	# print("average: ", super_result / (len(s_phi) * NUM_OF_MICS - M))
-	x = ANGLE_OF_DIRECTIONS * np.arange(0,NUM_OF_DIRECTIONS,1)
-	plt.plot(x, P_MUSIC_phi)
+
+	# plt.plot(x, P_MUSIC_phi)
 	# title = str(counter) +" " + str(freq)
 	# plt.title(title)
 	# plt.show()
@@ -289,8 +303,9 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 	# print(P_MUSIC_phi)
 	# print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
 	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS # TODO - return the M maxes, not only 1
-	return freq, final_angle, statistics.mean(gmean(db_of_signal))
+	# return freq, final_angle, statistics.mean(gmean(db_of_signal))
 	# exit(1)
+	return final_angle, final_angle_bla
 
 
 def find_num_of_signals(eigenvalues): # todo - ask orr about this

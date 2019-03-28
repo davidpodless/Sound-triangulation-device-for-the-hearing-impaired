@@ -53,5 +53,25 @@ def run():
 	plt.savefig("angle graph.png", format="PNG", dpi=720)
 
 
+def check_outer_product():
+	x = np.zeros(shape=(2,1), dtype=complex)
+	x[0,0] = complex(0,1)
+	x[1,0] = complex(1,2)
+	print(x)
+	print(x.conj())
+	print(np.outer(x, x))
+	print(np.outer(x.conj(), x))
+
+def check_sum_of_matrix():
+	R = np.zeros([2,2], dtype=np.complex64)
+	a = np.matrix([[complex(1,2),2],[3,4]])
+	b = np.matrix([[1, 2], [3, 4]])
+	print(R)
+	R = np.add(a,R)
+	print(R)
+	R += b
+	print(R)
+
+
 if __name__=="__main__":
-	run()
+	check_sum_of_matrix()
