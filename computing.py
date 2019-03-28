@@ -240,13 +240,13 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 	for i in eigenvalues:
 		if np.abs(i) > 0.1: # TODO: when using pure sine - the lambdas are *very* small, there are a lot more noise when the siganl is not pure. is that an indacation that this is not the correct angle?
 			# TODO - the stupid way to check - run on all the frequencies and check which one will result in the correct angle.
-			# TODO 3: record two pure signals from two diffrent angles, what is the values of the np.abs(i)s?
+			# TODO 3: record two pure signals from two different angles, what is the values of the np.abs(i)s?
 			M += 1
 		# else:
 			# print(np.abs(i))
-	if M == 4:
-		print(np.abs(eigenvalues))
-		raise Exception
+	# if M == 4:
+	# 	print(np.abs(eigenvalues))
+		# raise Exception
 	# exit(12)
 	P_MUSIC_phi = []
 	j = 0
@@ -257,8 +257,8 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 		for i in range(len(eigenvalues) - M):
 			# print(np.abs(np.vdot(eigenvectors[i].T, angle)))
 			result += np.square(np.abs(np.vdot(eigenvectors[i].T, angle)))
-			if index == 45 or index == 315:
-				print(index, angle, np.square(np.abs(np.vdot(eigenvectors[i].T, angle))))
+			# if index == 45 or index == 315:
+			# 	print(index, angle, np.square(np.abs(np.vdot(eigenvectors[i].T, angle))))
 
 			# print(i, DB_of_eigenvalues[i], end=" ")
 		# if index == 45 or index == 330:
@@ -272,8 +272,8 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 	plt.plot(x, P_MUSIC_phi)
 	# title = str(counter) +" " + str(freq)
 	# plt.title(title)
-	plt.show()
-	exit(1)
+	# plt.show()
+	# exit(1)
 	# print(P_MUSIC_phi)
 	# print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
 	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS # TODO - return the M maxes, not only 1
