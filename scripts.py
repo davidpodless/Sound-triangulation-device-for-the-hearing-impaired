@@ -54,13 +54,17 @@ def run():
 
 
 def check_outer_product():
-	x = np.zeros(shape=(2,1), dtype=complex)
+	x = np.zeros(shape=(4,1), dtype=complex)
 	x[0,0] = complex(0,1)
-	x[1,0] = complex(1,2)
+	x[1,0] = complex(1/2,math.sqrt(3)/2)
+	x[2,0] = complex(1,0)
+	x[3,0] = complex(math.sqrt(2)/2,math.sqrt(2)/2)
 	print(x)
 	print(x.conj())
 	print(np.outer(x, x))
-	print(np.outer(x.conj(), x))
+	print(np.outer(x, x.conj()))
+	print(x @ x.conj().T)
+	print(np.matmul(x, x.conj().T))
 
 def check_sum_of_matrix():
 	R = np.zeros([2,2], dtype=np.complex64)
@@ -74,4 +78,4 @@ def check_sum_of_matrix():
 
 
 if __name__=="__main__":
-	check_sum_of_matrix()
+	check_outer_product()

@@ -196,21 +196,39 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 	x = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
 	s_phi = nprect(1, potential_phi(freq))
 	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=complex)
+	R_outer = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=complex)
+	R_at = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=complex)
+	R_matmul = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=complex)
+
+
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
-	print(np.angle(vector_of_signals))
+	# print(np.angle(vector_of_signals))
 	for vector in vector_of_signals:
 		normalized = vector[0]
 		# print(vector)
 		for i in range(len(vector)):
 			vector[i] = rect(1, np.angle(vector[i]) - np.angle(normalized))
 			# vector[i] = rect(1, np.angle(vector[i]))
-		R = np.add(np.outer(vector, vector.conj()), R)
-	print(np.angle(vector_of_signals))
+		# print(vector, vector.conj().T)
+		R_matmul += np.matmul(vector, vector.conj().T)
+		R_outer += np.outer(vector, vector.conj())
+		R_at += vector @ vector.conj().T
+
+		print(R_matmul)
+		print(R_outer)
+		print(R_at)
+		# TODO - can't trust any of those functions. MUST build one of my own. HOW TO CREATE FUNCTION LIKE THAT?
+
+
+	# R = np.add(np.outer(vector, vector.conj()), R)
+	# print(np.angle(vector_of_signals))
 	# exit(321)
+	# print(R)
 	R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
-	print(np.abs(R), np.angle(R))
+	# print(np.abs(R), np.angle(R))
+	# exit(12)
+	print(R,"\n\n",np.abs(R),"\n\n" ,np.angle(R), "\n\n\n")
 	exit(12)
-	# print(R,"\n\n",np.abs(R),"\n\n" ,np.angle(R), "\n\n\n")
 	'''now, R is N*N matrix with rank M. meaning, there is N-M eigenvectors corresponding to the zero eigenvalue'''
 	eigenvalues, eigenvectors = np.linalg.eig(R)
 	# print(eigenvalues,"\n", eigenvectors)
@@ -226,13 +244,13 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 	# for i in range(len(tester)):
 	# 	tester[i] = rect(1, np.angle(tester[i]) - np.angle(normalized))
 	# print(np.angle(tester))
-	print(np.angle(tester))
+	# print(np.angle(tester))
 	results = []
 	for phi in s_phi:
 		results.append(np.vdot(phi, tester))
 	# plt.plot(x, results)
 	# plt.show()
-	final_angle_bla = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
+	# final_angle_bla = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
 	# print(final_angle_bla)
 	# exit(123)
 
@@ -295,17 +313,17 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 		P_MUSIC_phi.append(1 / (result+0.0000001))
 	# print("average: ", super_result / (len(s_phi) * NUM_OF_MICS - M))
 
-	# plt.plot(x, P_MUSIC_phi)
+	plt.plot(x, P_MUSIC_phi)
 	# title = str(counter) +" " + str(freq)
 	# plt.title(title)
-	# plt.show()
+	plt.show()
 	# exit(1)
 	# print(P_MUSIC_phi)
 	# print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
 	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS # TODO - return the M maxes, not only 1
-	# return freq, final_angle, statistics.mean(gmean(db_of_signal))
+	return freq, final_angle, statistics.mean(gmean(db_of_signal))
 	# exit(1)
-	return final_angle, final_angle_bla
+	# return final_angle, final_angle_bla
 
 
 def one_signal_algorithm(peaks):
