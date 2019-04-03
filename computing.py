@@ -225,12 +225,12 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
 	# print(np.angle(vector_of_signals))
-	for vector in vector_of_signals:
-		normalized = vector[0]
+	for vector in vector_of_signals: # TODO: is normalized was the problem?!
+		# normalized = vector[0]
 		# print(vector)
-		for i in range(len(vector)):
+		# for i in range(len(vector)):
 			# vector[i] = rect(1, np.angle(vector[i]) - np.angle(normalized))
-			vector[i] = rect(1, np.angle(vector[i]))
+			# vector[i] = rect(1, np.angle(vector[i]))
 		#
 		# print(vector, vector.conj().T)
 		R = sum_of_matrix(R, matrix_from_vector(vector))
@@ -265,7 +265,7 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	results = []
 	for phi in s_phi:
 		results.append(np.vdot(phi, tester))
-	plt.plot(x, results)
+	# plt.plot(x, results)
 	# plt.title("test " + str(counter))
 	# plt.show()
 	final_angle_bla = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
@@ -283,9 +283,9 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
     # TODO - equ. 50 from the paper should work, S is a complex vector r = 1, phi = Delta_Phi that we find in potential_phi(). find the M phis that give as the maxest values
 
 	M = 0
-	# for i in np.abs(eigenvalues):
-		# print(i)
-	# exit(12)
+	for i in np.abs(eigenvalues):
+		print(i)
+	exit(12)
 	for i in eigenvalues:
 		if np.abs(i) > 0.1: # TODO: when using pure sine - the lambdas are *very* small, there are a lot more noise when the siganl is not pure. is that an indacation that this is not the correct angle?
 			# TODO - the stupid way to check - run on all the frequencies and check which one will result in the correct angle.
@@ -307,7 +307,7 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	# 		s_phi[j] = rect(np.abs(R[i][i]), temp[j][i])
 			# print(R[i][i])
 	# print("\n\n\n\n\n")
-
+	M = 1
 	# assert (np.abs(np.angle(s_phi) - temp) < 0.0000001).all(), (freq, np.angle(s_phi) - temp)
 	# print((s_phi[5]))
 	P_MUSIC_phi = []
@@ -331,10 +331,10 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 		P_MUSIC_phi.append(1 / (result+0.0000001))
 	# print("average: ", super_result / (len(s_phi) * NUM_OF_MICS - M))
 
-	plt.plot(x, P_MUSIC_phi)
-	# title = str(counter) +" " + str(freq)
-	# plt.title("'real' " + str(counter))
-	plt.show()
+	# plt.plot(x, P_MUSIC_phi)
+	# title = "'real' " + str(counter) +" " + str(freq)
+	# plt.title(title)
+	# plt.show()
 	# exit(1)
 	# print(P_MUSIC_phi)
 	# print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
