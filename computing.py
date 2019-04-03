@@ -22,9 +22,7 @@ average_DB = 0
 frequency_for_draw = 0
 FORMAT_TO_SAVE = 'png'
 
-# TODO - instead of one CHUNK at a time, we need to take NUM_OF_SNAPSHOTS_FOR_MUSIC CHUNKs, we will compute fft for each one, the magnitude and the db of the signal, and the average then find the peaks of the average and find the sample corrolate with the average pick and use them for the MUSIC/FFT BASE algorithms
-# TODO - possible way: the recording Thread should append to a list NUM_OF_SNAPSHOTS_FOR_MUSIC CHUNKs, and append the result to the deque. in this senerio - we need to do the splitting to 4 channels diffrently. ADVENATEGE - can't get "error" in the number of sample that we have, CONS - takes more time to start the signal proccessing.
-# TODO - what happens if there is no sound to be found?
+# TODO - fixing the DB
 
 
 def extract_data(frames, results):
@@ -43,14 +41,17 @@ def extract_data(frames, results):
 		if next_sample:
 			list_of_data_sent_to_calc = []
 			for frame in next_sample:
+				# for i in frame:
+				# 	print(i)
+				# print(len(frame))
+				# exit()
 				# 6 channels in one stream
-				np_data = np.fromstring(frame, dtype=np.int16)
+				np_data = np.fromstring(frame, dtype=np.int16) # TODO - is the dtype correct? changing to 32 break everything
 				# 4 channels for 4 mics
 				ch_data = [np.ndarray]*4
 				for i in range(1, 5):
-					ch_data[i-1] = np_data[i::6]
+					ch_data[i-1] = (np_data[i::6])
 				list_of_data_sent_to_calc.append(ch_data)
-
 			results.appendleft(calc_angle(list_of_data_sent_to_calc, thread_counter))
 			thread_counter += 1
 		else:
@@ -116,8 +117,9 @@ def calc_angle(lst_of_data, counter):
 	global all_fft
 	global frequency_for_draw
 	for index, fft_vector in enumerate(separated_vector_for_music):
-		to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], 20 * scipy.log10(2.0 / N * np.abs(fft_vector))))
-		# to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector), 20 * scipy.log10(2.0 / N * np.abs(fft_vector)))))
+		to_return.append(xf[location_of_real_peaks_in_data[index]])
+		to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], 20 * scipy.log10(2.0 / N * np.abs(fft_vector)), counter))
+		to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector), 20 * scipy.log10(2.0 / N * np.abs(fft_vector)))))
 		# if(xf[location_of_real_peaks_in_data[index]] < 2000):
 		# 	frequency_for_draw = xf[location_of_real_peaks_in_data[index]]
 		# 	all_fft.append(fft_vector)
@@ -152,6 +154,7 @@ def find_peaks(raw_signal, avr):
 	# print(typ)
 	if realDB.size == 0:
 		realDB = np.append(realDB, [0])
+	# print(realDB)
 	return [xf[result[0]], result[0], realDB.mean()]
 
 
@@ -183,7 +186,30 @@ def potential_phi(freq):
 	return lst_to_return
 
 
-def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
+def matrix_from_vector(vector):
+	D = len(vector)
+	# print(D)
+	# vector = vector.reshape((D, 1))
+	matrix_to_return = np.zeros([D,D], dtype=np.complex64)
+	for i in range(D):
+		for j in range(D):
+			matrix_to_return[i][j] = vector[i] * vector[j].conj()
+	# print(len(matrix_to_return), len(matrix_to_return.T))
+	return matrix_to_return
+
+
+def sum_of_matrix(m1, m2):
+	if m1.shape != m2.shape:
+		raise ValueError("matrices not in the same shape")
+	matrix_to_return = np.zeros(m1.shape, dtype=complex)
+	for i in range(np.size(m1,0)):
+		for j in range(np.size(m1,1)):
+			matrix_to_return[i,j] = (m1[i,j] + m2[i,j])
+	return matrix_to_return
+
+
+
+def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	'''
 	:param vector_of_signals: vector of NUM_OF_SNAPSHOTS_FOR_MUSIC snapshot, each snapshot contain signal in frequency freq
 	:param freq: the frequency of the signal
@@ -196,10 +222,6 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 	x = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
 	s_phi = nprect(1, potential_phi(freq))
 	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=complex)
-	R_outer = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=complex)
-	R_at = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=complex)
-	R_matmul = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=complex)
-
 
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
 	# print(np.angle(vector_of_signals))
@@ -207,18 +229,13 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 		normalized = vector[0]
 		# print(vector)
 		for i in range(len(vector)):
-			vector[i] = rect(1, np.angle(vector[i]) - np.angle(normalized))
-			# vector[i] = rect(1, np.angle(vector[i]))
+			# vector[i] = rect(1, np.angle(vector[i]) - np.angle(normalized))
+			vector[i] = rect(1, np.angle(vector[i]))
+		#
 		# print(vector, vector.conj().T)
-		R_matmul += np.matmul(vector, vector.conj().T)
-		R_outer += np.outer(vector, vector.conj())
-		R_at += vector @ vector.conj().T
+		R = sum_of_matrix(R, matrix_from_vector(vector))
 
-		print(R_matmul)
-		print(R_outer)
-		print(R_at)
 		# TODO - can't trust any of those functions. MUST build one of my own. HOW TO CREATE FUNCTION LIKE THAT?
-
 
 	# R = np.add(np.outer(vector, vector.conj()), R)
 	# print(np.angle(vector_of_signals))
@@ -227,8 +244,8 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 	R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
 	# print(np.abs(R), np.angle(R))
 	# exit(12)
-	print(R,"\n\n",np.abs(R),"\n\n" ,np.angle(R), "\n\n\n")
-	exit(12)
+	# print(R,"\n\n",np.abs(R),"\n\n" ,np.angle(R), "\n\n\n")
+	# exit(12)
 	'''now, R is N*N matrix with rank M. meaning, there is N-M eigenvectors corresponding to the zero eigenvalue'''
 	eigenvalues, eigenvectors = np.linalg.eig(R)
 	# print(eigenvalues,"\n", eigenvectors)
@@ -248,9 +265,10 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 	results = []
 	for phi in s_phi:
 		results.append(np.vdot(phi, tester))
-	# plt.plot(x, results)
+	plt.plot(x, results)
+	# plt.title("test " + str(counter))
 	# plt.show()
-	# final_angle_bla = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
+	final_angle_bla = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
 	# print(final_angle_bla)
 	# exit(123)
 
@@ -315,15 +333,15 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal):
 
 	plt.plot(x, P_MUSIC_phi)
 	# title = str(counter) +" " + str(freq)
-	# plt.title(title)
+	# plt.title("'real' " + str(counter))
 	plt.show()
 	# exit(1)
 	# print(P_MUSIC_phi)
 	# print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
 	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS # TODO - return the M maxes, not only 1
-	return freq, final_angle, statistics.mean(gmean(db_of_signal))
+	# return freq, final_angle, statistics.mean(gmean(db_of_signal))
 	# exit(1)
-	# return final_angle, final_angle_bla
+	return final_angle, final_angle_bla
 
 
 def one_signal_algorithm(peaks):
@@ -344,9 +362,10 @@ def one_signal_algorithm(peaks):
 		for snapshot in peaks[1]:
 			vector = np.angle(snapshot)
 			db_of_vector = 20 * scipy.log10(2.0 / CHUNK * np.abs(snapshot))
-			if statistics.mean(db_of_vector) < 30:
-				# print(statistics.mean(db_of_vector))
-				continue
+			# if statistics.mean(db_of_vector) < 30:
+			# 	print(statistics.mean(db_of_vector))
+			# 	continue
+			# print(statistics.mean(db_of_vector))
 			normalized = vector[0]
 			for i in range(len(vector)):
 				vector[i] -= normalized
@@ -367,8 +386,13 @@ def one_signal_algorithm(peaks):
 		for phi in s_phi:
 			results.append(np.vdot(phi, final_angle))
 		final_angle = np.argmax(np.abs(results))
-		# db = statistics.mean(gmean(peaks[2]))
-		to_return.append((peaks[0], final_angle*ANGLE_OF_DIRECTIONS, 0))
+		# db = []
+		# for k in peaks[2]:
+		# 	db.append(statistics.mean(20 * scipy.log10(2.0 / CHUNK * np.abs(k))))
+		#
+		# db = statistics.mean(db)
+		# to_return.append((peaks[0], final_angle*ANGLE_OF_DIRECTIONS, db))
+		to_return.append((peaks[0], final_angle * ANGLE_OF_DIRECTIONS, 0))
 
 	# print(to_return)
 	return to_return

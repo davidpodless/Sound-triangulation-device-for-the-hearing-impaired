@@ -1,7 +1,7 @@
 from systemConstants import *
 import numpy as np
 import matplotlib.pyplot as plt
-
+import computing
 
 
 def potential_phi(freq):
@@ -54,6 +54,7 @@ def run():
 
 
 def check_outer_product():
+	a = np.zeros([4,4], dtype=complex)
 	x = np.zeros(shape=(4,1), dtype=complex)
 	x[0,0] = complex(0,1)
 	x[1,0] = complex(1/2,math.sqrt(3)/2)
@@ -65,17 +66,19 @@ def check_outer_product():
 	print(np.outer(x, x.conj()))
 	print(x @ x.conj().T)
 	print(np.matmul(x, x.conj().T))
+	print(computing.matrix_from_vector(x))
+	# a +=
 
 def check_sum_of_matrix():
 	R = np.zeros([2,2], dtype=np.complex64)
 	a = np.matrix([[complex(1,2),2],[3,4]])
 	b = np.matrix([[1, 2], [3, 4]])
 	print(R)
-	R = np.add(a,R)
+	R = computing.sum_of_matrix(a,b)
 	print(R)
-	R += b
+	R = a+b
 	print(R)
 
 
 if __name__=="__main__":
-	check_outer_product()
+	check_sum_of_matrix()
