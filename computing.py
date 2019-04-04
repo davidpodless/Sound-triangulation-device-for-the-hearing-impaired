@@ -117,9 +117,11 @@ def calc_angle(lst_of_data, counter):
 	global all_fft
 	global frequency_for_draw
 	for index, fft_vector in enumerate(separated_vector_for_music):
-		to_return.append(xf[location_of_real_peaks_in_data[index]])
-		to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], 20 * scipy.log10(2.0 / N * np.abs(fft_vector)), counter))
+		# to_return.append(xf[location_of_real_peaks_in_data[index]])
 		to_return.append(one_signal_algorithm((xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector), 20 * scipy.log10(2.0 / N * np.abs(fft_vector)))))
+		to_return.append(MUSIC_algorithm(fft_vector, xf[location_of_real_peaks_in_data[index]], 20 * scipy.log10(2.0 / N * np.abs(fft_vector)), counter))
+
+
 		# if(xf[location_of_real_peaks_in_data[index]] < 2000):
 		# 	frequency_for_draw = xf[location_of_real_peaks_in_data[index]]
 		# 	all_fft.append(fft_vector)
@@ -226,12 +228,17 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
 	# print(np.angle(vector_of_signals))
 	for vector in vector_of_signals: # TODO: is normalized was the problem?!
-		# normalized = vector[0]
+		normalized = vector[0]
 		# print(vector)
-		# for i in range(len(vector)):
+		# print(len(vector))
+		for i in range(len(vector)):
+			angle = np.angle(vector[i]) - np.angle(normalized)
+			r = np.abs(vector[i])
+			# angle = np.angle(vector[i])
+			vector[i] = complex(r*math.cos(angle), r*math.sin(angle))
 			# vector[i] = rect(1, np.angle(vector[i]) - np.angle(normalized))
 			# vector[i] = rect(1, np.angle(vector[i]))
-		#
+		# exit()
 		# print(vector, vector.conj().T)
 		R = sum_of_matrix(R, matrix_from_vector(vector))
 
@@ -273,19 +280,19 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	# exit(123)
 
 	# np.set_printoptions(suppress=True,
-	#                     formatter={'float_kind': '{:f}'.format})
+	#					 formatter={'float_kind': '{:f}'.format})
 	# TODO - choose thershold for the eigenvalues, use records for that. using magintuted or dB?
 
 	DB_of_eigenvalues = 20 * scipy.log10(2 / CHUNK * np.abs(eigenvalues))
 	# print("db: ", DB_of_eigenvalues, "\tfreq: ", freq)
 	# find_num_of_signals(eigenvalues)
 	# todo - how to continue? for 1<=m<=3, find the N-M smallest |lambda|s, take their eigenvectors.
-    # TODO - equ. 50 from the paper should work, S is a complex vector r = 1, phi = Delta_Phi that we find in potential_phi(). find the M phis that give as the maxest values
+	# TODO - equ. 50 from the paper should work, S is a complex vector r = 1, phi = Delta_Phi that we find in potential_phi(). find the M phis that give as the maxest values
 
 	M = 0
-	for i in np.abs(eigenvalues):
-		print(i)
-	exit(12)
+	# for i in np.abs(eigenvalues):
+	# 	print(i)
+	# exit(12)
 	for i in eigenvalues:
 		if np.abs(i) > 0.1: # TODO: when using pure sine - the lambdas are *very* small, there are a lot more noise when the siganl is not pure. is that an indacation that this is not the correct angle?
 			# TODO - the stupid way to check - run on all the frequencies and check which one will result in the correct angle.
@@ -341,7 +348,7 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS # TODO - return the M maxes, not only 1
 	# return freq, final_angle, statistics.mean(gmean(db_of_signal))
 	# exit(1)
-	return final_angle, final_angle_bla
+	return "MUSIC: " + str(final_angle)
 
 
 def one_signal_algorithm(peaks):
@@ -386,16 +393,21 @@ def one_signal_algorithm(peaks):
 		for phi in s_phi:
 			results.append(np.vdot(phi, final_angle))
 		final_angle = np.argmax(np.abs(results))
+		x = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
+
+		# plt.plot(x, np.abs(results))
+		# plt.show()
 		# db = []
 		# for k in peaks[2]:
 		# 	db.append(statistics.mean(20 * scipy.log10(2.0 / CHUNK * np.abs(k))))
 		#
 		# db = statistics.mean(db)
 		# to_return.append((peaks[0], final_angle*ANGLE_OF_DIRECTIONS, db))
-		to_return.append((peaks[0], final_angle * ANGLE_OF_DIRECTIONS, 0))
+		# to_return.append((peaks[0], final_angle * ANGLE_OF_DIRECTIONS, 0))
+		to_return.append(final_angle * ANGLE_OF_DIRECTIONS)
 
 	# print(to_return)
-	return to_return
+	return "MLE: " + str(to_return)
 
 
 def draw_graph():
