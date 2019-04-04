@@ -17,14 +17,16 @@ averageNoiseArray = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
 averageNoise = 0
 newNoise = 0
 
+
 def getFileslist():
 	# return [f for f in listdir('./wav_files') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./wav_files/48k_600_0_output.wav']
-
+	return ['./wav_files/48k_600_45_output.wav']
 
 
 def fake_record(files, frames):
 	print("was in fake record")
+	print(files)
+	exit(1)
 	for file in files:
 		wav = wave.open(file)
 		print(file.title())
