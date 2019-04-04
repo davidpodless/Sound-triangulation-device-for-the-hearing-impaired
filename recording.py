@@ -30,8 +30,8 @@ def record(frames, foo):
         channels=RESPEAKER_CHANNELS,
         input=True,
         input_device_index=RESPEAKER_INDEX, )
-    # print("* recording")
-    # for i in range(0, int(RESPEAKER_RATE / CHUNK * RECORD_SECONDS)):
+    print("* listening")
+
     if not main.CHUNK_RECORDING:
         while True:
             
@@ -40,7 +40,7 @@ def record(frames, foo):
     else:
         counter = 0
         lst = []
-        while True:
+        while main.keepRecording:
             data = stream.read(CHUNK, exception_on_overflow = False)
             lst.append(data)
             counter = (counter + 1) % NUM_OF_SNAPSHOTS_FOR_MUSIC
@@ -49,21 +49,6 @@ def record(frames, foo):
                 lst.clear()
 
     print("* done recording")
-    print(len(frames))
-    print(frames[0])
-    print(type(frames[0]))
-
-    first_data = frames[0]
-    channel1 = first_data[2::6]
-    channel2 = first_data[3::6]
-    channel3 = first_data[4::6]
-    channel4 = first_data[5::6]
-    print(binascii.hexlify(bytearray(first_data)))
-    print(binascii.hexlify(bytearray(channel1)))
-    print(binascii.hexlify(bytearray(channel2)))
-    print(binascii.hexlify(bytearray(channel3)))
-    print(binascii.hexlify(bytearray(channel4)))
-
     stream.stop_stream()
     stream.close()
     p.terminate()

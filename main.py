@@ -19,7 +19,7 @@ newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./wav_files') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./wav_files/48k_600_45_output.wav']
+	return ['./wav_files/48k_600_0_output.wav']
 
 
 
@@ -63,7 +63,6 @@ if __name__ == '__main__':
 	fakeRecordingThread.start()
 	# fakeRecordingThread.join()
 	computingThread.start()
-
 
 	computingThread.join()
 	# computing.draw_graph()
