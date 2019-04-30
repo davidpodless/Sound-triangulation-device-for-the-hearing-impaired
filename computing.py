@@ -22,7 +22,6 @@ def extract_data(frames, results):
 	:param results: deque where the thread will save the data
 	:return: None
 	"""
-	
 	is_still_empty = False
 	thread_counter = 0
 	while True:
@@ -93,6 +92,7 @@ def calc_angle(lst_of_data, counter):
 	global all_fft
 	global frequency_for_draw
 	for index, fft_vector in enumerate(separated_vector_for_music):
+		to_return.append(xf[location_of_real_peaks_in_data[index]])
 		db = 20 * scipy.log10(2.0 / n * np.abs(fft_vector))
 		to_return.append(one_signal_algorithm(
 			(xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector), db)))
@@ -140,8 +140,10 @@ def potential_phi(freq):
 			2) * D * math.cos((PI/4) - rads), D * math.sin(rads)]
 		# phase approach:
 		phase_change = (2*PI*freq / SPEED_OF_SOUND)
+		r = 1
 		for dx in delta_x:
-			results.append(dx * phase_change)
+			results.append(complex(r*math.cos(dx * phase_change), r*math.sin(dx * phase_change)))
+			# r -= 0.2
 
 		lst_to_return.append(results)
 	return lst_to_return
@@ -188,7 +190,8 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	""" In this function, N - number of mics, M number of signals"""
 	nprect = np.vectorize(rect)
 	x = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
-	s_phi = nprect(1, potential_phi(freq))
+	# s_phi = nprect(1, potential_phi(freq))
+	s_phi = potential_phi(freq)
 	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=np.complex64)
 
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
@@ -198,10 +201,12 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 		# print(vector)
 		# print(len(vector))
 		for i in range(len(vector)):
-			angle = np.angle(vector[i]) - np.angle(normalized)
-			r = np.abs(vector[i])
+			# print(np.abs(vector[i]) / np.abs(normalized))
+			angle = np.angle(vector[i])
+			# r = np.abs(vector[i])
+			r = 1
 			# angle = np.angle(vector[i])
-			vector[i] = np.complex64(complex(r*math.cos(angle), r*math.sin(angle)))
+			vector[i] = complex(r*math.cos(angle), r*math.sin(angle))
 			# vector[i] = rect(1, np.angle(vector[i]) - np.angle(normalized))
 			# vector[i] = rect(1, np.angle(vector[i]))
 		# exit()
@@ -258,9 +263,14 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 		super_result += result
 		j += 1
 		P_MUSIC_phi.append(1 / result)
-	# print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
+	print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
+	plt.plot(x, P_MUSIC_phi)
+	plt.show()
 	# TODO - return the M maxes, not only 1
-	final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS
+	# final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS
+	final_angle = (signal.find_peaks(P_MUSIC_phi)[0]) * ANGLE_OF_DIRECTIONS
+	# print(final_angle)
+	# exit()
 	# return freq, final_angle, statistics.mean(gmean(db_of_signal))
 	return "MUSIC: " + str(final_angle)
 
@@ -274,7 +284,8 @@ def one_signal_algorithm(peaks):
 
 	to_return = []
 	nprect = np.vectorize(rect)
-	s_phi = nprect(1,potential_phi(peaks[0]))
+	# s_phi = nprect(1,potential_phi(peaks[0]))
+	s_phi = potential_phi(peaks[0])
 	if peaks:
 		if peaks[0] < 100:
 			return
@@ -346,11 +357,12 @@ def draw_graph():
 	# 	plt.close()
 	# exit(13)
 	nprect = np.vectorize(rect)
-	angle_from_math = potential_phi(frequency_for_draw)
+	# angle_from_math = potential_phi(frequency_for_draw)
 	mean_complex = rect(0,1)
 	len_of_vector_of_snapshots = int(len(all_fft[0]))
 	x = np.linspace(0.0, 360, NUM_OF_DIRECTIONS)
-	s_phi = nprect(1, angle_from_math)
+	# s_phi = nprect(1, angle_from_math)
+	s_phi = potential_phi(frequency_for_draw)
 	title = "inner product for 90 angle 600HZ"
 	location_to_save = "./graphs/"
 	for vector_of_snapshots in all_fft:
