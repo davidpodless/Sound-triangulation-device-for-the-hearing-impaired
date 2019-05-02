@@ -303,7 +303,7 @@ def one_signal_algorithm(peaks):
 	'''
 	if peaks[0] < 100:
 		return
-	print(peaks[0])
+	# print(peaks[0])
 	to_return = []
 	nprect = np.vectorize(rect)
 	s_phi = nprect(1,potential_phi(peaks[0]))
