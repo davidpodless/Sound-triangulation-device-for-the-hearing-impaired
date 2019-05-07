@@ -197,18 +197,16 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	"""
 
 	""" In this function, N - number of mics, M number of signals"""
-	if freq < 250:
-		return None
+	# if freq < 250:
+	# 	return None
 	nprect = np.vectorize(rect)
 	x = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
-	# s_phi = nprect(1, potential_phi(freq))
 	s_phi, max_for_mics = potential_phi(freq)
 	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=np.complex64)
 
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
-	# print(np.angle(vector_of_signals))
+	# MLE:
 	sigma = []
-	# delete from here
 	angle = (np.angle(vector_of_signals) % MOD_2_PI)
 	for snapshot in angle:
 		norm = snapshot[0]
@@ -219,24 +217,23 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 		xcos = []
 		ysin = []
 		for point in mic:
-			if np.abs(point)> max_for_mics[i] and (MOD_2_PI - np.abs(point) > max_for_mics[i]):
-				print(i, point, " this point was deleted")
-				continue
+			# if np.abs(point)> max_for_mics[i] and (MOD_2_PI - np.abs(point) > max_for_mics[i]):
+			# 	print(i, point, " this point was deleted")
+			# 	continue
 			xcos.append(math.cos(point))
 			ysin.append(math.sin(point))
 		x = np.mean(xcos)
 		y = np.mean(ysin)
 		sigma.append(math.atan2(y, x))
 	# print(angle, "\n", sigma, "\n\n\n\n")
-	print(sigma)
+	# print(sigma)
 	MLE_complex = nprect(1, sigma)
 	results = []
 	for phi in s_phi:
 		results.append(np.vdot(phi, MLE_complex))
 	MLE = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
 	print("MLE: ", MLE)
-	# return
-	# exit()  # delete until here
+	# END MLE
 	skipped = 0
 	for vector in vector_of_signals:  # TODO: is normalized was the problem?!
 		normalized = vector[0]
@@ -248,11 +245,11 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 			angle = np.angle(vector[i])
 			# r = np.abs(vector[i])
 			r = 1
-			angle = (np.angle(vector[i]) - np.angle(normalized)) % MOD_2_PI
-			if np.abs(angle) > max_for_mics[i] and (MOD_2_PI - np.abs(angle) > max_for_mics[i]):
-				print(i, (MOD_2_PI - np.abs(angle), np.angle(vector)), " this vector was deleted")
-				skipped += 1
-				break
+			# angle = (np.angle(vector[i]) - np.angle(normalized)) % MOD_2_PI
+			# if np.abs(angle) > max_for_mics[i] and (MOD_2_PI - np.abs(angle) > max_for_mics[i]):
+			# 	print(i, (MOD_2_PI - np.abs(angle), np.angle(vector)), " this vector was deleted")
+			# 	skipped += 1
+			# 	break
 			vector[i] = complex(r*math.cos(angle), r*math.sin(angle))
 			# print(i, angle)
 			# sigma[i] += angle
@@ -327,8 +324,9 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	# print(final_angle)
 	# exit()
 	# return freq, final_angle, statistics.mean(gmean(db_of_signal))
-	print("MUSIC: " + str(final_angle), "MLE: ", MLE, "\n\n\n\n")
-	return "MUSIC: " + str(final_angle) + " MLE: " + str(MLE)
+	print("MUSIC: " + str(final_angle), "MLE: ", MLE, " MSE from MUSIC: ", mse_final_angle_for_one_signal, "\n\n\n\n")
+	return "MUSIC: " + str(final_angle) + " MSE: " + str(mse_final_angle_for_one_signal) + " MLE: " + str(MLE)
+	# return "MLE: " + str(MLE)
 
 
 def one_signal_algorithm(peaks):
