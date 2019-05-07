@@ -94,11 +94,11 @@ def calc_angle(lst_of_data, counter):
 	for index, fft_vector in enumerate(separated_vector_for_music):
 		to_return.append(xf[location_of_real_peaks_in_data[index]])
 		db = 20 * scipy.log10(2.0 / n * np.abs(fft_vector))
-		# to_return.append(one_signal_algorithm(
-		# 	(xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector), db)))
 		to_return.append(MUSIC_algorithm(fft_vector, xf[
 										location_of_real_peaks_in_data[
 											index]], db, counter))
+		# to_return.append(one_signal_algorithm(
+		# 	(xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector), db)))
 	return to_return
 
 
@@ -229,6 +229,12 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 		sigma.append(math.atan2(y, x))
 	# print(angle, "\n", sigma, "\n\n\n\n")
 	print(sigma)
+	MLE_complex = nprect(1, sigma)
+	results = []
+	for phi in s_phi:
+		results.append(np.vdot(phi, MLE_complex))
+	MLE = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
+	print("MLE: ", MLE)
 	# return
 	# exit()  # delete until here
 	skipped = 0
@@ -321,8 +327,8 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	# print(final_angle)
 	# exit()
 	# return freq, final_angle, statistics.mean(gmean(db_of_signal))
-	print("MUSIC: " + str(final_angle), "\n\n\n\n")
-	return "MUSIC: " + str(final_angle)
+	print("MUSIC: " + str(final_angle), "MLE: ", MLE, "\n\n\n\n")
+	return "MUSIC: " + str(final_angle) + " MLE: " + str(MLE)
 
 
 def one_signal_algorithm(peaks):
@@ -334,15 +340,13 @@ def one_signal_algorithm(peaks):
 
 	to_return = []
 	nprect = np.vectorize(rect)
-	# s_phi = nprect(1,potential_phi(peaks[0]))
-	s_phi = potential_phi(peaks[0])
+	s_phi, max_for_mics = potential_phi(peaks[0])
 	if peaks:
 		if peaks[0] < 100:
 			return
 		final_angle = rect(0, 1)
 		counter = 0
 		for snapshot in peaks[1]:
-			# TODO - should I delete "fake" results? (meaning - db less than real)?
 			vector = np.angle(snapshot)
 			db_of_vector = 20 * scipy.log10(2.0 / CHUNK * np.abs(snapshot))
 			# if statistics.mean(db_of_vector) < 30:
@@ -352,6 +356,10 @@ def one_signal_algorithm(peaks):
 			normalized = vector[0]
 			for i in range(len(vector)):
 				vector[i] -= normalized
+				if np.abs(vector[i]) > max_for_mics[i] and (MOD_2_PI - np.abs(vector[i]) > max_for_mics[i]):
+					print(i, (MOD_2_PI - np.abs(vector[i]), np.angle(vector)), " this vector was deleted")
+					# skipped += 1
+					break
 			# print(vector)
 			complex_vector = nprect(1, vector)
 			# assert (vector - np.angle(complex_vector) < 0.0001).all()
