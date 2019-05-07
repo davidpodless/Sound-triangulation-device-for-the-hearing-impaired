@@ -1,12 +1,7 @@
-from kivy.base import runTouchApp
-from kivy.lang import Builder
 from kivy.uix.widget import Widget
-from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
-from kivy.animation import Animation
 from kivy.app import App
 from kivy.graphics import *
-from kivy.properties import ListProperty
 from kivy.core.window import Window
 import math
 import util
