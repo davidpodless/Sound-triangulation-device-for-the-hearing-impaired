@@ -94,8 +94,8 @@ def calc_angle(lst_of_data, counter):
 	for index, fft_vector in enumerate(separated_vector_for_music):
 		to_return.append(xf[location_of_real_peaks_in_data[index]])
 		db = 20 * scipy.log10(2.0 / n * np.abs(fft_vector))
-		to_return.append(one_signal_algorithm(
-			(xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector), db)))
+		# to_return.append(one_signal_algorithm(
+		# 	(xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector), db)))
 		to_return.append(MUSIC_algorithm(fft_vector, xf[
 										location_of_real_peaks_in_data[
 											index]], db, counter))
@@ -126,6 +126,9 @@ def find_peaks(raw_signal, avr):
 	return [xf[result[0]], result[0], real_db.mean()]
 
 
+def phase_change(freq): return 2*PI*freq / SPEED_OF_SOUND
+
+
 def potential_phi(freq):
 	"""
 	:param freq: frequency to check
@@ -133,20 +136,26 @@ def potential_phi(freq):
 	the Vector if the signal come from that angle
 	"""
 	lst_to_return = []
+	find_max = []
 	for i in range(NUM_OF_DIRECTIONS):
 		results = []
+		dummy = []
 		rads = math.radians(i*ANGLE_OF_DIRECTIONS)
-		delta_x = [0, D * math.cos(rads), math.sqrt(
-			2) * D * math.cos((PI/4) - rads), D * math.sin(rads)]
+		delta_x = [0, D * math.cos(rads), math.sqrt(2) * D * math.cos((PI/4) - rads), D * math.sin(rads)]
 		# phase approach:
-		phase_change = (2*PI*freq / SPEED_OF_SOUND)
 		r = 1
+		phase = phase_change(freq)
 		for dx in delta_x:
-			results.append(complex(r*math.cos(dx * phase_change), r*math.sin(dx * phase_change)))
-			# r -= 0.2
-
+			results.append(complex(r*math.cos(dx * phase), r*math.sin(dx * phase)))
+			dummy.append(dx*phase)
+		find_max.append(dummy)
 		lst_to_return.append(results)
-	return lst_to_return
+	# print(freq)
+	max_for_mic = []
+	for mic in np.asarray(find_max).T:
+		mic_max = np.max(mic)
+		max_for_mic.append(mic_max + ERROR_THRESHOLD*mic_max)
+	return lst_to_return, max_for_mic
 
 
 def matrix_from_vector(vector):
@@ -188,16 +197,44 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	"""
 
 	""" In this function, N - number of mics, M number of signals"""
+	if freq < 250:
+		return None
 	nprect = np.vectorize(rect)
 	x = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
 	# s_phi = nprect(1, potential_phi(freq))
-	s_phi = potential_phi(freq)
+	s_phi, max_for_mics = potential_phi(freq)
 	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=np.complex64)
 
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
 	# print(np.angle(vector_of_signals))
+	sigma = []
+	# delete from here
+	angle = (np.angle(vector_of_signals) % MOD_2_PI)
+	for snapshot in angle:
+		norm = snapshot[0]
+		for i,mic in enumerate(snapshot):
+			snapshot[i] -= norm
+	print(angle)
+	for i, mic in enumerate(angle.T):
+		xcos = []
+		ysin = []
+		for point in mic:
+			if np.abs(point)> max_for_mics[i] and (MOD_2_PI - np.abs(point) > max_for_mics[i]):
+				print(i, point, " this point was deleted")
+				continue
+			xcos.append(math.cos(point))
+			ysin.append(math.sin(point))
+		x = np.mean(xcos)
+		y = np.mean(ysin)
+		sigma.append(math.atan2(y, x))
+	# print(angle, "\n", sigma, "\n\n\n\n")
+	print(sigma)
+	# return
+	# exit()  # delete until here
+	skipped = 0
 	for vector in vector_of_signals:  # TODO: is normalized was the problem?!
 		normalized = vector[0]
+
 		# print(vector)
 		# print(len(vector))
 		for i in range(len(vector)):
@@ -205,19 +242,31 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 			angle = np.angle(vector[i])
 			# r = np.abs(vector[i])
 			r = 1
-			# angle = np.angle(vector[i])
+			angle = (np.angle(vector[i]) - np.angle(normalized)) % MOD_2_PI
+			if np.abs(angle) > max_for_mics[i] and (MOD_2_PI - np.abs(angle) > max_for_mics[i]):
+				print(i, (MOD_2_PI - np.abs(angle), np.angle(vector)), " this vector was deleted")
+				skipped += 1
+				break
 			vector[i] = complex(r*math.cos(angle), r*math.sin(angle))
+			# print(i, angle)
+			# sigma[i] += angle
 			# vector[i] = rect(1, np.angle(vector[i]) - np.angle(normalized))
 			# vector[i] = rect(1, np.angle(vector[i]))
+
 		# exit()
 		# print(vector, vector.conj().T)
 		R = sum_of_matrix(R, matrix_from_vector(vector))
-
+	# for i, s in enumerate(sigma):
+	# 	sigma[i] = s / (NUM_OF_SNAPSHOTS_FOR_MUSIC - counter)
+	# print("result: ", sigma, "\n\n")
+	# exit()
 	# R = np.add(np.outer(vector, vector.conj()), R)
 	# print(np.angle(vector_of_signals))
 	# exit(321)
 	# print(R)
-	R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
+	if skipped > THRESHOLD_FOR_MODE:
+		return "unable to detect"
+	R /= (NUM_OF_SNAPSHOTS_FOR_MUSIC - skipped)
 	# print(np.abs(R), np.angle(R))
 	# exit(12)
 	# print(R,"\n\n",np.abs(R),"\n\n" ,np.angle(R), "\n\n\n")
@@ -263,15 +312,16 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 		super_result += result
 		j += 1
 		P_MUSIC_phi.append(1 / result)
-	print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
-	plt.plot(x, P_MUSIC_phi)
-	plt.show()
+	# print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
+	# plt.plot(x, P_MUSIC_phi)
+	# plt.show()
 	# TODO - return the M maxes, not only 1
 	# final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS
 	final_angle = (signal.find_peaks(P_MUSIC_phi)[0]) * ANGLE_OF_DIRECTIONS
 	# print(final_angle)
 	# exit()
 	# return freq, final_angle, statistics.mean(gmean(db_of_signal))
+	print("MUSIC: " + str(final_angle), "\n\n\n\n")
 	return "MUSIC: " + str(final_angle)
 
 
@@ -292,8 +342,7 @@ def one_signal_algorithm(peaks):
 		final_angle = rect(0, 1)
 		counter = 0
 		for snapshot in peaks[1]:
-			# TODO - should I delete "fake" results? (meaning - db less than
-			# real)?
+			# TODO - should I delete "fake" results? (meaning - db less than real)?
 			vector = np.angle(snapshot)
 			db_of_vector = 20 * scipy.log10(2.0 / CHUNK * np.abs(snapshot))
 			# if statistics.mean(db_of_vector) < 30:
@@ -315,17 +364,6 @@ def one_signal_algorithm(peaks):
 		for phi in s_phi:
 			results.append(np.vdot(phi, final_angle))
 		final_angle = np.argmax(np.abs(results))
-		x = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
-
-		# plt.plot(x, np.abs(results))
-		# plt.show()
-		# db = []
-		# for k in peaks[2]:
-		# 	db.append(statistics.mean(20 * scipy.log10(2.0 / CHUNK * np.abs(k))))
-		#
-		# db = statistics.mean(db)
-		# to_return.append((peaks[0], final_angle*ANGLE_OF_DIRECTIONS, db))
-		# to_return.append((peaks[0], final_angle * ANGLE_OF_DIRECTIONS, 0))
 		to_return.append(final_angle * ANGLE_OF_DIRECTIONS)
 
 	# print(to_return)

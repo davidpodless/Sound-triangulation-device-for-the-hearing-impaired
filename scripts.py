@@ -5,31 +5,30 @@ import computing
 
 
 def potential_phi(freq):
-	'''
+	"""
 	:param freq: frequency to check
-	:return: array, n=360, each cell represent the value that should be in the Vector if the signal come from that angle
-	'''
+	:return: array, n=360, each cell represent the value that should be in
+	the Vector if the signal come from that angle
+	"""
 	lst_to_return = []
 	for i in range(NUM_OF_DIRECTIONS):
 		results = []
-		# results.append(0)
-
 		rads = math.radians(i*ANGLE_OF_DIRECTIONS)
-		deltaX = [0, D * math.cos(rads), math.sqrt(2) * D * math.cos((PI/4) - rads), D * math.sin(rads)]
+		delta_x = [0, D * math.cos(rads), math.sqrt(
+			2) * D * math.cos((PI/4) - rads), D * math.sin(rads)]
 		# phase approach:
-		phaseChange = (2*PI*freq / SPEED_OF_SOUND)
-		# phaseChangeArray = [phaseChange, phaseChange, phaseChange, phaseChange]
-		for dx in deltaX:
-			# print(dx, phaseChange, dx*phaseChange)
-			results.append(dx * phaseChange)
-		# print(results)
+		phase_change = (2*PI*freq / SPEED_OF_SOUND)
+		r = 1
+		for dx in delta_x:
+			results.append(complex(r*math.cos(dx * phase_change), r*math.sin(dx * phase_change)))
+			# r -= 0.2
 
 		lst_to_return.append(results)
 	return lst_to_return
 
 
 def run():
-	results = potential_phi(600)
+	results = potential_phi(350)
 	mic1 = []
 	mic2 = []
 	mic3 = []
@@ -38,19 +37,20 @@ def run():
 		mic2.append(result[2])
 		mic3.append(result[3])
 	x = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
-	print("0: ", results[0])
-	print("36: ", results[36])
+	print("0: ", np.angle(results[0]))
 	print("45: ", results[45])
-	print("90: ", results[90])
-	print("200: ", results[200])
-	print("300: ", results[300])
-	plt.plot(x, mic1, label="mic1")
-	plt.plot(x, mic2, label="mic2")
-	plt.plot(x, mic3, label="mic3")
+	# print("90: ", results[90])
+	# print("180: ", results[180])
+	# print("270: ", results[270])
+	# print("315: ", results[315])
+	plt.plot(x, np.angle(mic1), label="mic1")
+	plt.plot(x, np.angle(mic2), label="mic2")
+	plt.plot(x, np.angle(mic3), label="mic3")
 	plt.legend()
 	title = "Expected result because math"
 	plt.title(title)
-	plt.savefig("angle graph.png", format="PNG", dpi=720)
+	plt.show()
+	# plt.savefig("angle graph.png", format="PNG", dpi=720)
 
 
 def check_outer_product():
@@ -79,6 +79,23 @@ def check_sum_of_matrix():
 	R = a+b
 	print(R)
 
+def check_mean_of_angle():
+	sigma = []
+	angle = np.asarray([[ 0.,-6.01300704, -5.88468294, -6.20433656],
+	                    [ 0.,          0.26343833,  0.25972342,  0.15630209],
+ [ 0.,          0.37666975,  0.36675583, -0.04633747],
+ [ 0.,          0.19767262,  0.28710173, -0.03393963],
+ [ 0.,          0.19716212,  0.15120855, -0.0796047 ]])
+	for snapshot in angle:
+		norm = snapshot[0]
+		for i, mic in enumerate(snapshot):
+			snapshot[i] -= norm
+
+	for mic in angle.T:
+		x = np.mean(np.cos(mic))
+		y = np.mean(np.sin(mic))
+		sigma.append(math.atan2(y, x))
+	print(angle, "\n", sigma, "\n\n\n\n")
 
 if __name__=="__main__":
-	check_sum_of_matrix()
+	check_mean_of_angle()
