@@ -11,7 +11,6 @@ from kivy.core.window import Window
 import math
 import util
 
-
 RADIUS = 180
 
 
@@ -43,12 +42,13 @@ class SoundCircle(Widget):
 			y = self.line.points[coor_ind + 1] - self.circle_center[1]
 			_, ang_rad = util.cart2pol(x, y)
 			ang_deg = math.degrees(ang_rad)
-
-			x_new, y_new = util.pol2cart(RADIUS * 1 + (util.build_gaussian_for_circle(120, 60)(ang_deg)) + (util.build_gaussian_for_circle(30, 50)(ang_deg)) + (util.build_gaussian_for_circle(220, 80)(ang_deg)), ang_rad)
+			x_new, y_new = util.pol2cart(RADIUS * (
+				util.build_multiple_gausians([(30, 1), (230, 2)])(ang_deg)),
+			                             ang_rad)
 			self.line.points[coor_ind] = x_new + self.circle_center[0]
 			self.line.points[coor_ind + 1] = y_new + self.circle_center[1]
 
+
 class SoundCircleApp(App):
 	def build(self):
-		foo = lambda x: print("here") if x else print("there")
 		return SoundCircle()
