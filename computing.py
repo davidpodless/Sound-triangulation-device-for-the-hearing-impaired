@@ -197,8 +197,6 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	"""
 
 	""" In this function, N - number of mics, M number of signals"""
-	# if freq < 250:
-	# 	return None
 	nprect = np.vectorize(rect)
 	X = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
 	s_phi, max_for_mics = potential_phi(freq)
@@ -210,99 +208,59 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	angle = (np.angle(vector_of_signals) % MOD_2_PI)
 	for snapshot in angle:
 		norm = snapshot[0]
-		for i,mic in enumerate(snapshot):
+		for i, mic in enumerate(snapshot):
 			snapshot[i] -= norm
-	# print(angle)
 	for i, mic in enumerate(angle.T):
 		xcos = []
 		ysin = []
 		for point in mic:
-			# if np.abs(point)> max_for_mics[i] and (MOD_2_PI - np.abs(point) > max_for_mics[i]):
-			# 	print(i, point, " this point was deleted")
-			# 	continue
 			xcos.append(math.cos(point))
 			ysin.append(math.sin(point))
 		x = np.mean(xcos)
 		y = np.mean(ysin)
 		sigma.append(math.atan2(y, x))
-	# print(angle, "\n", sigma, "\n\n\n\n")
-	# print(sigma)
+
 	MLE_complex = nprect(1, sigma)
 	results = []
 	for phi in s_phi:
 		results.append(np.vdot(phi, MLE_complex))
 	MLE = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
-	# print("MLE: ", MLE)
 	# END MLE
-	skipped = 0
 	for vector in vector_of_signals:
-		normalized = vector[0]
-		for i in range(len(vector)):
-			# print(np.abs(vector[i]) / np.abs(normalized))
-			angle = np.angle(vector[i])
-			# r = np.abs(vector[i])
-			r = 1
-			# angle = (np.angle(vector[i]) - np.angle(normalized)) % MOD_2_PI
-			# if np.abs(angle) > max_for_mics[i] and (MOD_2_PI - np.abs(angle) > max_for_mics[i]):
-			# 	print(i, (MOD_2_PI - np.abs(angle), np.angle(vector)), " this vector was deleted")
-			# 	skipped += 1
-			# 	break
-			vector[i] = rect(1, angle)
-
+		vector = nprect(1, np.angle(vector))
 		R = sum_of_matrix(R, matrix_from_vector(vector))
-	# if skipped > THRESHOLD_FOR_MODE:
-	# 	return "unable to detect"
-	# R /= (NUM_OF_SNAPSHOTS_FOR_MUSIC - skipped)
+	R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
 	"""now, R is N*N matrix with rank M. meaning, there is N-M eigenvectors
 	corresponding to the zero eigenvalue"""
 	eigenvalues, eigenvectors = np.linalg.eig(R)
+	# eigenvectors in rows
+	eigenvectors = eigenvectors.T
 	# sort the eigenvalues and eigenvectors from the smallest to the largest
 	idx = eigenvalues.argsort()
-	eigenvectors = eigenvectors.T
 	eigenvalues = eigenvalues[idx]
 	eigenvectors = eigenvectors[idx]
 	tester = eigenvectors[-1]
 	results = []
 	for phi in s_phi:
 		results.append(np.vdot(phi, tester))
-	# plt.plot(X, np.abs(results))
 	mse_final_angle_for_one_signal = (signal.find_peaks(np.abs(results)))[0] * ANGLE_OF_DIRECTIONS
-	# plt.title(mse_final_angle_for_one_signal)
-	# plt.show()
-	# print(mse_final_angle_for_one_signal)
-	# exit()
-	DB_of_eigenvalues = 20 * scipy.log10(2 / CHUNK * np.abs(eigenvalues))
+
+	# determine how many signals, according to eigenvalues
 	M = 0
-	# for i in DB_of_eigenvalues:
-	# 	print(i)
-	# exit(12)
 	for i in eigenvalues:
 		# TODO - choose threshold for the eigenvalues, use records for that.
-		if np.abs(i) > 0.1:
+		if np.abs(i) > 2:
 			M += 1
-			# print(i)
-		# else:
-		# 	print(i)
-	# if M == 4:
-	# 	print(np.abs(eigenvalues))
-		# raise Exception
-	# exit(1)
 
-	M = 1
 	P_MUSIC_phi = []
-	j = 0
-	super_result = 0
 	for index, angle in enumerate(s_phi):
 		result = 0
 		for i in range(len(eigenvalues) - M):
 			result += np.square(np.abs(np.vdot(eigenvectors[i].T, angle)))
-		super_result += result
-		j += 1
 		P_MUSIC_phi.append(1 / result)
-	# print(signal.find_peaks(P_MUSIC_phi), ANGLE_OF_DIRECTIONS  )
-	# plt.plot(x, P_MUSIC_phi)
+	# plt.plot(X, P_MUSIC_phi)
 	# plt.show()
-	# TODO - return the M maxes, not only 1
+	# TODO - return the M maxes, not only 1 - should be enough to use find peaks function
 	# final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS
 	final_angle = (signal.find_peaks(P_MUSIC_phi)[0]) * ANGLE_OF_DIRECTIONS
 	# print(final_angle)
@@ -310,7 +268,7 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	# return freq, final_angle, statistics.mean(gmean(db_of_signal))
 	# print("MUSIC: " + str(final_angle), "MLE: ", MLE, " MSE from MUSIC: ", mse_final_angle_for_one_signal, "\n\n\n\n")
 	return "MUSIC: " + str(final_angle) + " MSE: " + str(mse_final_angle_for_one_signal) + " MLE: " + str(MLE)
-	# return "MLE: " + str(MLE)
+	#TODO: send DB of the signal too
 
 
 def one_signal_algorithm(peaks):
