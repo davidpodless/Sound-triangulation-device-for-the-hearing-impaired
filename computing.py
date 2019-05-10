@@ -91,14 +91,15 @@ def calc_angle(lst_of_data, counter):
 	global all_fft
 	global frequency_for_draw
 	for index, fft_vector in enumerate(separated_vector_for_music):
-		to_return.append(xf[location_of_real_peaks_in_data[index]])
 		db = 20 * scipy.log10(2.0 / n * np.abs(fft_vector))
-		to_return.append(db.mean())
-		to_return.append(MUSIC_algorithm(fft_vector, xf[
+		angles = MUSIC_algorithm(fft_vector, xf[
 										location_of_real_peaks_in_data[
-											index]], counter))
-		# to_return.append(one_signal_algorithm(
-		# 	(xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector), db)))
+											index]], counter)
+		# print(xf[location_of_real_peaks_in_data[index]], db.mean(), angles)
+		# print(not angles)
+		if angles:
+			to_return.append([xf[location_of_real_peaks_in_data[index]], db.mean(), angles])
+
 	return to_return
 
 
@@ -255,11 +256,15 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# plt.plot(X, P_MUSIC_phi)
 	# plt.show()
 	# final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS
-	final_angle = (signal.argrelmax(np.asarray(P_MUSIC_phi), mode='warp')[0]) * ANGLE_OF_DIRECTIONS
-	if M == 1:
-		return "MUSIC: " + str(final_angle) + " MSE: " + str(mse_final_angle_for_one_signal) + " MLE: " + str(MLE)
-	else:
-		return "MUSIC: " + str(final_angle)
+	final_angle = (signal.argrelmax(np.asarray(P_MUSIC_phi), mode='warp')[0])
+	to_return = []
+	for i in final_angle:
+		if P_MUSIC_phi[int(i)] > THRESHOLD_FOR_MUSIC_PEAK:
+			# print(P_MUSIC_phi[int(i)])
+			to_return.append(i * ANGLE_OF_DIRECTIONS)
+		# else:
+		# 	print(i * ANGLE_OF_DIRECTIONS, P_MUSIC_phi[int(i)])
+	return to_return
 
 
 def draw_graph():
