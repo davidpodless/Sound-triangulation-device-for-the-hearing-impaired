@@ -33,7 +33,6 @@ def extract_data(frames, results):
 			for frame in next_sample:
 				# 6 channels in one stream
 				np_data = np.fromstring(frame, dtype=np.int16)
-				# TODO - is the dtype correct? changing to 32 break everything
 				# 4 channels for 4 mics
 				ch_data = [np.ndarray]*4
 				for i in range(1, 5):
@@ -94,9 +93,10 @@ def calc_angle(lst_of_data, counter):
 	for index, fft_vector in enumerate(separated_vector_for_music):
 		to_return.append(xf[location_of_real_peaks_in_data[index]])
 		db = 20 * scipy.log10(2.0 / n * np.abs(fft_vector))
+		to_return.append(db.mean())
 		to_return.append(MUSIC_algorithm(fft_vector, xf[
 										location_of_real_peaks_in_data[
-											index]], db, counter))
+											index]], counter))
 		# to_return.append(one_signal_algorithm(
 		# 	(xf[location_of_real_peaks_in_data[index]], np.angle(fft_vector), db)))
 	return to_return
@@ -122,11 +122,7 @@ def find_peaks(raw_signal, avr):
 	real_db = result[1]['peak_heights']
 	if real_db.size == 0:
 		real_db = np.append(real_db, [0])
-
 	return [xf[result[0]], result[0], real_db.mean()]
-
-
-def phase_change(freq): return 2*PI*freq / SPEED_OF_SOUND
 
 
 def potential_phi(freq):
@@ -136,26 +132,17 @@ def potential_phi(freq):
 	the Vector if the signal come from that angle
 	"""
 	lst_to_return = []
-	find_max = []
 	for i in range(NUM_OF_DIRECTIONS):
 		results = []
-		dummy = []
 		rads = math.radians(i*ANGLE_OF_DIRECTIONS)
 		delta_x = [0, D * math.cos(rads), math.sqrt(2) * D * math.cos((PI/4) - rads), D * math.sin(rads)]
-		# phase approach:
 		r = 1
-		phase = phase_change(freq)
+		phase = 2*PI*freq / SPEED_OF_SOUND
 		for dx in delta_x:
 			results.append(complex(r*math.cos(dx * phase), r*math.sin(dx * phase)))
-			dummy.append(dx*phase)
-		find_max.append(dummy)
 		lst_to_return.append(results)
-	# print(freq)
-	max_for_mic = []
-	for mic in np.asarray(find_max).T:
-		mic_max = np.max(mic)
-		max_for_mic.append(mic_max + ERROR_THRESHOLD*mic_max)
-	return lst_to_return, max_for_mic
+
+	return lst_to_return
 
 
 def matrix_from_vector(vector):
@@ -187,7 +174,7 @@ def sum_of_matrix(m1, m2):
 	return matrix_to_return
 
 
-def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
+def MUSIC_algorithm(vector_of_signals, freq, counter):
 	"""
 	:param vector_of_signals: vector of NUM_OF_SNAPSHOTS_FOR_MUSIC snapshot,
 	each snapshot contain signal in frequency freq
@@ -199,12 +186,12 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	""" In this function, N - number of mics, M number of signals"""
 	nprect = np.vectorize(rect)
 	X = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
-	s_phi, max_for_mics = potential_phi(freq)
+	s_phi = potential_phi(freq)
 	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=np.complex64)
 
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
 	# MLE:
-	sigma = []
+	theta = [] # mean of angle from the samples
 	angle = (np.angle(vector_of_signals) % MOD_2_PI)
 	for snapshot in angle:
 		norm = snapshot[0]
@@ -218,14 +205,15 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 			ysin.append(math.sin(point))
 		x = np.mean(xcos)
 		y = np.mean(ysin)
-		sigma.append(math.atan2(y, x))
-
-	MLE_complex = nprect(1, sigma)
+		theta.append(math.atan2(y, x))
+	MLE_complex = nprect(1, theta)
 	results = []
 	for phi in s_phi:
 		results.append(np.vdot(phi, MLE_complex))
 	MLE = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
 	# END MLE
+
+	# MUSIC algorithm
 	for vector in vector_of_signals:
 		vector = nprect(1, np.angle(vector))
 		R = sum_of_matrix(R, matrix_from_vector(vector))
@@ -239,18 +227,24 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 	idx = eigenvalues.argsort()
 	eigenvalues = eigenvalues[idx]
 	eigenvectors = eigenvectors[idx]
+
+	# MSE for 1 signal case
 	tester = eigenvectors[-1]
 	results = []
 	for phi in s_phi:
 		results.append(np.vdot(phi, tester))
-	mse_final_angle_for_one_signal = (signal.find_peaks(np.abs(results)))[0] * ANGLE_OF_DIRECTIONS
+	mse_final_angle_for_one_signal = (signal.argrelmax(np.abs(results), mode='warp'))[0] * ANGLE_OF_DIRECTIONS
 
 	# determine how many signals, according to eigenvalues
+	# large eigenvalue mean signal, the noise should be the eigenvalue 0.
 	M = 0
 	for i in eigenvalues:
 		# TODO - choose threshold for the eigenvalues, use records for that.
 		if np.abs(i) > 2:
 			M += 1
+
+	if M >= 4: # TODO - how to send "too much signals to process?"
+		return "Too much signals to process"
 
 	P_MUSIC_phi = []
 	for index, angle in enumerate(s_phi):
@@ -260,62 +254,12 @@ def MUSIC_algorithm(vector_of_signals, freq, db_of_signal, counter):
 		P_MUSIC_phi.append(1 / result)
 	# plt.plot(X, P_MUSIC_phi)
 	# plt.show()
-	# TODO - return the M maxes, not only 1 - should be enough to use find peaks function
 	# final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS
-	final_angle = (signal.find_peaks(P_MUSIC_phi)[0]) * ANGLE_OF_DIRECTIONS
-	# print(final_angle)
-	# exit()
-	# return freq, final_angle, statistics.mean(gmean(db_of_signal))
-	# print("MUSIC: " + str(final_angle), "MLE: ", MLE, " MSE from MUSIC: ", mse_final_angle_for_one_signal, "\n\n\n\n")
-	return "MUSIC: " + str(final_angle) + " MSE: " + str(mse_final_angle_for_one_signal) + " MLE: " + str(MLE)
-	#TODO: send DB of the signal too
-
-
-def one_signal_algorithm(peaks):
-	"""
-	:param peaks: list of tuples (freq, angle, db of the signal) that represent peaks in frequency
-	:return: the direction which the signal come from in a tuple (freq, direction, db of the signal)
-	this is the naive and not necessarily work approach.
-	"""
-
-	to_return = []
-	nprect = np.vectorize(rect)
-	s_phi, max_for_mics = potential_phi(peaks[0])
-	if peaks:
-		if peaks[0] < 100:
-			return
-		final_angle = rect(0, 1)
-		counter = 0
-		for snapshot in peaks[1]:
-			vector = np.angle(snapshot)
-			db_of_vector = 20 * scipy.log10(2.0 / CHUNK * np.abs(snapshot))
-			# if statistics.mean(db_of_vector) < 30:
-			# 	print(statistics.mean(db_of_vector))
-			# 	continue
-			# print(statistics.mean(db_of_vector))
-			normalized = vector[0]
-			for i in range(len(vector)):
-				vector[i] -= normalized
-				if np.abs(vector[i]) > max_for_mics[i] and (MOD_2_PI - np.abs(vector[i]) > max_for_mics[i]):
-					print(i, (MOD_2_PI - np.abs(vector[i]), np.angle(vector)), " this vector was deleted")
-					# skipped += 1
-					break
-			# print(vector)
-			complex_vector = nprect(1, vector)
-			# assert (vector - np.angle(complex_vector) < 0.0001).all()
-			final_angle += complex_vector
-			counter += 1
-		if counter < THRESHOLD_FOR_MODE:
-			return None
-		final_angle /= counter
-		results = []
-		for phi in s_phi:
-			results.append(np.vdot(phi, final_angle))
-		final_angle = np.argmax(np.abs(results))
-		to_return.append(final_angle * ANGLE_OF_DIRECTIONS)
-
-	# print(to_return)
-	return "MLE: " + str(to_return)
+	final_angle = (signal.argrelmax(np.asarray(P_MUSIC_phi), mode='warp')[0]) * ANGLE_OF_DIRECTIONS
+	if M == 1:
+		return "MUSIC: " + str(final_angle) + " MSE: " + str(mse_final_angle_for_one_signal) + " MLE: " + str(MLE)
+	else:
+		return "MUSIC: " + str(final_angle)
 
 
 def draw_graph():
