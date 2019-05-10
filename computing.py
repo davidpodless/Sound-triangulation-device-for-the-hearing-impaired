@@ -193,28 +193,6 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=np.complex64)
 
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
-	# MLE:
-	theta = [] # mean of angle from the samples
-	angle = (np.angle(vector_of_signals) % MOD_2_PI)
-	for snapshot in angle:
-		norm = snapshot[0]
-		for i, mic in enumerate(snapshot):
-			snapshot[i] -= norm
-	for i, mic in enumerate(angle.T):
-		xcos = []
-		ysin = []
-		for point in mic:
-			xcos.append(math.cos(point))
-			ysin.append(math.sin(point))
-		x = np.mean(xcos)
-		y = np.mean(ysin)
-		theta.append(math.atan2(y, x))
-	MLE_complex = nprect(1, theta)
-	results = []
-	for phi in s_phi:
-		results.append(np.vdot(phi, MLE_complex))
-	MLE = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
-	# END MLE
 
 	# MUSIC algorithm
 	for vector in vector_of_signals:
@@ -230,13 +208,6 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	idx = eigenvalues.argsort()
 	eigenvalues = eigenvalues[idx]
 	eigenvectors = eigenvectors[idx]
-
-	# MSE for 1 signal case
-	tester = eigenvectors[-1]
-	results = []
-	for phi in s_phi:
-		results.append(np.vdot(phi, tester))
-	mse_final_angle_for_one_signal = (signal.argrelmax(np.abs(results), mode='warp'))[0] * ANGLE_OF_DIRECTIONS
 
 	# determine how many signals, according to eigenvalues
 	# large eigenvalue mean signal, the noise should be the eigenvalue 0.
@@ -262,10 +233,8 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	to_return = []
 	for i in final_angle:
 		if P_MUSIC_phi[int(i)] > THRESHOLD_FOR_MUSIC_PEAK:
-			# print(P_MUSIC_phi[int(i)])
 			to_return.append(i * ANGLE_OF_DIRECTIONS)
-		# else:
-		# 	print(i * ANGLE_OF_DIRECTIONS, P_MUSIC_phi[int(i)])
+
 	return to_return
 
 
