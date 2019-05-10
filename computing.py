@@ -99,7 +99,7 @@ def calc_angle(lst_of_data, counter):
 		# print(not angles)
 		if angles:
 			to_return.append([xf[location_of_real_peaks_in_data[index]], db.mean(), angles])
-
+	print(to_return)
 	return to_return
 
 
