@@ -42,10 +42,12 @@ def extract_data(frames, results):
 			thread_counter += 1
 		else:
 			if is_still_empty:
-				break
+				time.sleep(0.005)
+				continue
 			else:
 				is_still_empty = True
-				time.sleep(0.005)
+				print("sleeping")
+				time.sleep(0.5)
 
 
 def calc_angle(lst_of_data, counter):
@@ -107,7 +109,7 @@ def find_peaks(raw_signal, avr):
 	"""
 	:param raw_signal: raw signal from the mics
 	:param avr: the db average of the signal for the last RECORD_SECONDS seconds
-	:return: array [list of the freq peaks in the signal, the location in the 
+	:return: array [list of the freq peaks in the signal, the location in the
 	array of it, the fft of those locations, the average of the db of the signal]
 	"""
 	n = CHUNK
@@ -129,7 +131,7 @@ def find_peaks(raw_signal, avr):
 def potential_phi(freq):
 	"""
 	:param freq: frequency to check
-	:return: array, n=360, each cell represent the value that should be in 
+	:return: array, n=360, each cell represent the value that should be in
 	the Vector if the signal come from that angle
 	"""
 	lst_to_return = []
