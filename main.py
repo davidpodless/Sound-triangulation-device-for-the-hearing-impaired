@@ -6,7 +6,7 @@ import wave
 from scipy.io import wavfile
 import numpy as np
 import collections
-import recording
+# import recording
 import computing
 from systemConstants import *
 '''this program uses MKS system'''
@@ -17,14 +17,15 @@ averageNoiseArray = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
 averageNoise = 0
 newNoise = 0
 
+
 def getFileslist():
 	# return [f for f in listdir('./wav_files') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./wav_files/48k_600_45_output.wav']
-
+	return ['./wav_files/48k_45_output.wav']
 
 
 def fake_record(files, frames):
 	print("was in fake record")
+	print(files)
 	for file in files:
 		wav = wave.open(file)
 		print(file.title())
@@ -51,21 +52,22 @@ def fake_record(files, frames):
 
 
 if __name__ == '__main__':
+	# print(THRESHOLD_FOR_MODE)
 	# print(RECORD_BUFFER_MAX) todo: delete this
 	frames = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
 	results = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
-	recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
-	# fakeRecordingThread = threading.Thread(group=None, target=fake_record, name="fake recording thread", args=(getFileslist(), frames))
+	# recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
+	fakeRecordingThread = threading.Thread(group=None, target=fake_record, name="fake recording thread", args=(getFileslist(), frames))
 	computingThread = threading.Thread(group=None, target=computing.extract_data, name="compute thread", args=(frames, results))
+
+	# recordingThread.start()
+	fakeRecordingThread.start()
+	# fakeRecordingThread.join()
 	computingThread.start()
-	recordingThread.start()
-	# fakeRecordingThread.start()
-	
 
-
-	# computingThread.join()
+	computingThread.join()
 	# computing.draw_graph()
-	'''mode = {}
+	mode = {}
 	while results:
 		#
 		toPrint = results.pop()
@@ -79,4 +81,4 @@ if __name__ == '__main__':
 			# else:
 			# 	mode[result[1]] += 1
 	# ordered_mode = collections.OrderedDict(mode)
-	# print(sorted(mode.items(), key=lambda x:x[1]))'''
+	# print(sorted(mode.items(), key=lambda x:x[1]))
