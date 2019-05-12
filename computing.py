@@ -211,7 +211,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 		results.append(np.vdot(phi, MLE_complex))
 	MLE = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
 	# END MLE
-	draw_graph(np.abs(results), "MLE", freq, counter)
+	# draw_graph(np.abs(results), "MLE", freq, counter)
 	# MUSIC algorithm
 	for vector in vector_of_signals:
 		vector = nprect(1, np.angle(vector))
@@ -252,24 +252,27 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 		for i in range(len(eigenvalues) - M):
 			result += np.square(np.abs(np.vdot(eigenvectors[i].T, angle)))
 		P_MUSIC_phi.append(1 / result)
-	draw_graph(P_MUSIC_phi, "MUSIC", freq, counter)
+	# draw_graph(P_MUSIC_phi, "MUSIC", freq, counter)
 	final_angle = (signal.argrelmax(np.asarray(P_MUSIC_phi), mode='warp')[0])
 	# print(M, final_angle)
-	to_return = []
+	MUSIC_results = []
 	for j in range(M):
 		max = -10
 		for i in final_angle:
-			if i in to_return:
+			if i in MUSIC_results:
 				continue
 			else:
 				if P_MUSIC_phi[i] > THRESHOLD_FOR_MUSIC_PEAK and P_MUSIC_phi[i] > max:
 					max = i
 		if max > -10:
-			to_return.append(max)
-	for i in range(len(to_return)):
-		to_return[i] *= ANGLE_OF_DIRECTIONS
+			MUSIC_results.append(max)
+	for i in range(len(MUSIC_results)):
+		MUSIC_results[i] *= ANGLE_OF_DIRECTIONS
 
-	# print(to_return)
+	if len(MUSIC_results) == 1:
+		MUSIC_results = MUSIC_results[0]
+
+	to_return = [MUSIC_results, MLE]
 	return to_return
 
 '''
