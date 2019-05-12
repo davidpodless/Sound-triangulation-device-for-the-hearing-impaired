@@ -9,7 +9,6 @@ from cmath import rect
 import statistics
 
 all_fft = []
-average_DB = 0
 frequency_for_draw = 0
 FORMAT_TO_SAVE = 'png'
 
@@ -57,7 +56,6 @@ def calc_angle(lst_of_data, counter):
 	:return: the frequency and the angles of the signal. in case where there
 	is more than one frequency - for each one
 	"""
-	global average_DB
 	peaks_in_data = []
 	mode_of_frequencies = {}
 	n = CHUNK
@@ -66,7 +64,7 @@ def calc_angle(lst_of_data, counter):
 	# find the frequencies of a signal
 	for snapshot in lst_of_data:
 		# results contains: frequency, location in snapshot, mean of db.
-		results = find_peaks(snapshot[0], average_DB)
+		results = find_peaks(snapshot[0])
 
 		for index in results[1]:
 			if xf[index] >= 100:  # ignore low frequencies because of nosies
@@ -103,7 +101,7 @@ def calc_angle(lst_of_data, counter):
 	return to_return
 
 
-def find_peaks(raw_signal, avr):
+def find_peaks(raw_signal):
 	"""
 	:param raw_signal: raw signal from the mics
 	:param avr: the db average of the signal for the last RECORD_SECONDS seconds
@@ -118,7 +116,7 @@ def find_peaks(raw_signal, avr):
 
 	magnitude_of_frequency = 2.0 / n * abs_of_yf
 	db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
-	result = signal.find_peaks(db_of_yf, height=max(30, avr))
+	result = signal.find_peaks(db_of_yf, 30)
 	# TODO - should I return the db of the peaks? for deciding which freq to choose? no idea
 	real_db = result[1]['peak_heights']
 	if real_db.size == 0:
@@ -191,7 +189,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=np.complex64)
 
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
-	# MLE:
+	'''# MLE:
 	theta = [] # mean of angle from the samples
 	angle = (np.angle(vector_of_signals) % MOD_2_PI)
 	for snapshot in angle:
@@ -212,7 +210,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	for phi in s_phi:
 		results.append(np.vdot(phi, MLE_complex))
 	MLE = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
-	# END MLE
+	# END MLE'''
 
 	# MUSIC algorithm
 	for vector in vector_of_signals:
@@ -229,19 +227,20 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	eigenvalues = eigenvalues[idx]
 	eigenvectors = eigenvectors[idx]
 
-	# MSE for 1 signal case
+	'''# MSE for 1 signal case
 	tester = eigenvectors[-1]
 	results = []
 	for phi in s_phi:
 		results.append(np.vdot(phi, tester))
-	mse_final_angle_for_one_signal = (signal.argrelmax(np.abs(results), mode='warp'))[0] * ANGLE_OF_DIRECTIONS
+	mse_final_angle_for_one_signal = (signal.argrelmax(np.abs(results), mode='warp'))[0] * ANGLE_OF_DIRECTIONS'''
 
 	# determine how many signals, according to eigenvalues
 	# large eigenvalue mean signal, the noise should be the eigenvalue 0.
 	M = 0
+	# print(np.abs(eigenvalues))
 	for i in eigenvalues:
 		# TODO - choose threshold for the eigenvalues, use records for that.
-		if np.abs(i) > 2:
+		if np.abs(i) > THRESHOLD_FOR_EIGENVALUES:
 			M += 1
 
 	if M >= 4: # TODO - how to send "too much signals to process?"
@@ -255,15 +254,24 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 		P_MUSIC_phi.append(1 / result)
 	# plt.plot(X, P_MUSIC_phi)
 	# plt.show()
-	# final_angle = np.argmax(P_MUSIC_phi) * ANGLE_OF_DIRECTIONS
+
 	final_angle = (signal.argrelmax(np.asarray(P_MUSIC_phi), mode='warp')[0])
+	# print(M, final_angle)
 	to_return = []
-	for i in final_angle:
-		if P_MUSIC_phi[int(i)] > THRESHOLD_FOR_MUSIC_PEAK:
-			# print(P_MUSIC_phi[int(i)])
-			to_return.append(i * ANGLE_OF_DIRECTIONS)
-		# else:
-		# 	print(i * ANGLE_OF_DIRECTIONS, P_MUSIC_phi[int(i)])
+	for j in range(M):
+		max = -10
+		for i in final_angle:
+			if i in to_return:
+				continue
+			else:
+				if P_MUSIC_phi[i] > THRESHOLD_FOR_MUSIC_PEAK and P_MUSIC_phi[i] > max:
+					max = i
+		if max > -10:
+			to_return.append(max)
+	for i in range(len(to_return)):
+		to_return[i] *= ANGLE_OF_DIRECTIONS
+
+	# print(to_return)
 	return to_return
 
 
