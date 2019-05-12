@@ -184,12 +184,12 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 
 	""" In this function, N - number of mics, M number of signals"""
 	nprect = np.vectorize(rect)
-	X = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
+
 	s_phi = potential_phi(freq)
 	R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=np.complex64)
 
 	assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
-	'''# MLE:
+	# MLE:
 	theta = [] # mean of angle from the samples
 	angle = (np.angle(vector_of_signals) % MOD_2_PI)
 	for snapshot in angle:
@@ -210,8 +210,8 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	for phi in s_phi:
 		results.append(np.vdot(phi, MLE_complex))
 	MLE = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
-	# END MLE'''
-
+	# END MLE
+	draw_graph(np.abs(results), "MLE", freq, counter)
 	# MUSIC algorithm
 	for vector in vector_of_signals:
 		vector = nprect(1, np.angle(vector))
@@ -252,9 +252,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 		for i in range(len(eigenvalues) - M):
 			result += np.square(np.abs(np.vdot(eigenvectors[i].T, angle)))
 		P_MUSIC_phi.append(1 / result)
-	# plt.plot(X, P_MUSIC_phi)
-	# plt.show()
-
+	draw_graph(P_MUSIC_phi, "MUSIC", freq, counter)
 	final_angle = (signal.argrelmax(np.asarray(P_MUSIC_phi), mode='warp')[0])
 	# print(M, final_angle)
 	to_return = []
@@ -274,7 +272,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 	# print(to_return)
 	return to_return
 
-
+'''
 def draw_graph():
 	# N = CHUNK
 	# T = 1.0 / SAMPLE_RATE  # sample spacing
@@ -335,4 +333,23 @@ def draw_graph():
 	plt.title(title)
 	# plt.savefig(location_to_save+title + ".png", format=FORMAT_TO_SAVE, dpi=720)
 	# plt.close()
-	plt.show()
+	plt.show()'''
+
+def draw_graph(results, type, freq, counter):
+	'''
+	:param results: array of real numbers
+	:param type: how the data was estimated
+	:param freq: the frequency of the signal
+	:param counter:
+	:return:
+	'''
+	title = type + " no. " + str(counter) + " for " + str(np.argmax(results) * ANGLE_OF_DIRECTIONS) + " degree and " + str(int(freq)) + "HZ"
+	# print(title)
+	# exit()
+	X = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
+	location_to_save = "./graphs/"
+	plt.plot(X, results)
+	plt.xlabel("angle")
+	plt.title(title)
+	plt.savefig(location_to_save+title + ".png", format=FORMAT_TO_SAVE, dpi=720)
+	plt.close()
