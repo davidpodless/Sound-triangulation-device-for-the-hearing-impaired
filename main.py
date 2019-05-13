@@ -21,7 +21,7 @@ newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./wav_files') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./wav_files/48k_350_45_v2.wav']
+	return ['./wav_files/48k_350_0_v2.wav']
 
 
 def fake_record(files, frames):
@@ -72,10 +72,10 @@ if __name__ == '__main__':
 	while results:
 		#
 		toPrint = results.pop()
-		if toPrint == 0 or not toPrint:
+		if toPrint == 0:
 			continue
 
-		points_in_data.append(toPrint[0][2])
+		print(toPrint)
 		# for result in toPrint:
 			# print(result[1])
 			# if result[1] not in mode:  # count how many time specific frequency is in the data
@@ -84,25 +84,3 @@ if __name__ == '__main__':
 			# 	mode[result[1]] += 1
 	# ordered_mode = collections.OrderedDict(mode)
 	# print(sorted(mode.items(), key=lambda x:x[1]))
-	data = (np.asarray(points_in_data).T)
-	music = data[0]
-	mle = data[1]
-	for i, point in enumerate(music):
-		if point > 180:
-			music[i] -= 360
-	for i, point in enumerate(mle):
-		if point > 180:
-			mle[i] -= 360
-
-	print(music, '\n', mle)
-
-	x = [-60] * len(music)
-
-	plt.plot(x, label="real angle")
-	plt.plot(music, 'ro', label = "music algorithm")
-	plt.plot(mle, 'gx', label = "mle")
-	plt.ylim(-180,180)
-	plt.ylabel("degree")
-	plt.xlabel("snapshot")
-	plt.legend()
-	plt.savefig("./graphs/300 degree diff.png", dpi=720)

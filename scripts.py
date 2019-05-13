@@ -2,6 +2,8 @@ from systemConstants import *
 import numpy as np
 import matplotlib.pyplot as plt
 import computing
+import scipy.fftpack
+
 
 
 def potential_phi(freq):
@@ -108,5 +110,13 @@ def plot_sin():
 	plt.grid(visible = True)
 	plt.savefig("./graphs/sins.png", dpi=720)
 
+
+def fft_test():
+	a = [1, 2, 3, 4]
+	fft_a = scipy.fftpack.fft(a)
+	fft_fft_a = scipy.fftpack.fft(fft_a)
+	print(a, '\n', fft_a, '\n', fft_fft_a)
+
+
 if __name__=="__main__":
-	plot_sin()
+	fft_test()
