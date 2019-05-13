@@ -12,7 +12,8 @@ all_fft = []
 frequency_for_draw = 0
 FORMAT_TO_SAVE = 'png'
 
-# TODO - fixing the DB
+# TODO - check value for 2 signals, should work, verify that.
+# TODO 2 - dealing with complex signals (different frequencies in the same NUM_OF_SNAPSHOT)
 
 
 def extract_data(frames, results):
@@ -117,7 +118,6 @@ def find_peaks(raw_signal):
 	magnitude_of_frequency = 2.0 / n * abs_of_yf
 	db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
 	result = signal.find_peaks(db_of_yf, 30)
-	# TODO - should I return the db of the peaks? for deciding which freq to choose? no idea
 	real_db = result[1]['peak_heights']
 	if real_db.size == 0:
 		real_db = np.append(real_db, [0])
@@ -243,7 +243,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 		if np.abs(i) > THRESHOLD_FOR_EIGENVALUES:
 			M += 1
 
-	if M >= 4: # TODO - how to send "too much signals to process?"
+	if M >= 4:
 		return "Too much signals to process"
 
 	P_MUSIC_phi = []
@@ -254,7 +254,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 		P_MUSIC_phi.append(1 / result)
 	# draw_graph(P_MUSIC_phi, "MUSIC", freq, counter)
 	final_angle = (signal.argrelmax(np.asarray(P_MUSIC_phi), mode='warp')[0])
-	# print(M, final_angle)
+
 	MUSIC_results = []
 	for j in range(M):
 		max = -10
