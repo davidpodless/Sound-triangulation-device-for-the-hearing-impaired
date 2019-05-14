@@ -2,6 +2,8 @@ from systemConstants import *
 import numpy as np
 import matplotlib.pyplot as plt
 import computing
+import scipy.fftpack
+
 
 
 def potential_phi(freq):
@@ -97,5 +99,24 @@ def check_mean_of_angle():
 		sigma.append(math.atan2(y, x))
 	print(angle, "\n", sigma, "\n\n\n\n")
 
+
+def plot_sin():
+
+	X = 1/20 * np.arange(-NUM_OF_DIRECTIONS, NUM_OF_DIRECTIONS, 1)
+	sin_for_x = np.sin(np.radians(X))
+	plt.plot(X, sin_for_x)
+	plt.xlabel("degree")
+	plt.ylabel("sin")
+	plt.grid(visible = True)
+	plt.savefig("./graphs/sins.png", dpi=720)
+
+
+def fft_test():
+	a = [1, 2, 3, 4]
+	fft_a = scipy.fftpack.fft(a)
+	fft_fft_a = scipy.fftpack.fft(fft_a)
+	print(a, '\n', fft_a, '\n', fft_fft_a)
+
+
 if __name__=="__main__":
-	check_mean_of_angle()
+	fft_test()
