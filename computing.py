@@ -8,43 +8,45 @@ from systemConstants import *
 from cmath import rect
 import statistics
 
+
+
 # COUNTER = 50
 # TODO - check value for 2 signals, should work, verify that.
 # TODO 2 - dealing with complex signals (different frequencies in the same NUM_OF_SNAPSHOT) - seem like it should work NEED TESTING!!!
 
 
 def extract_data(frames, results):
-	"""
-	:param frames: deque of the raw data from the mics
-	:param results: deque where the thread will save the data
-	:return: None
-	"""
-	is_still_empty = False
-	thread_counter = 0
-	while True:
-		next_sample = 0
-		while type(next_sample) == int and frames:
-			next_sample = frames.pop()
-		if next_sample:
-			list_of_data_sent_to_calc = []
-			for frame in next_sample:
-				# 6 channels in one stream
-				np_data = np.fromstring(frame, dtype=np.int16)
-				# 4 channels for 4 mics
-				ch_data = [np.ndarray]*4
-				for i in range(1, 5):
-					ch_data[i-1] = (np_data[i::6])
-				list_of_data_sent_to_calc.append(ch_data)
-			results.appendleft(calc_angle(list_of_data_sent_to_calc, thread_counter))
-			thread_counter += 1
-		else:
-			if is_still_empty:
-				time.sleep(0.005)
-				continue
-			else:
-				is_still_empty = True
-				print("sleeping")
-				time.sleep(0.5)
+    """
+    :param frames: deque of the raw data from the mics
+    :param results: deque where the thread will save the data
+    :return: None
+    """
+    is_still_empty = False
+    thread_counter = 0
+    while True:
+        next_sample = 0
+        while type(next_sample) == int and frames:
+            next_sample = frames.pop()
+        if next_sample:
+            list_of_data_sent_to_calc = []
+            for frame in next_sample:
+                # 6 channels in one stream
+                np_data = np.fromstring(frame, dtype=np.int16)
+                # 4 channels for 4 mics
+                ch_data = [np.ndarray]*4
+                for i in range(1, 5):
+                    ch_data[i-1] = (np_data[i::6])
+                list_of_data_sent_to_calc.append(ch_data)
+            results.appendleft(calc_angle(list_of_data_sent_to_calc, thread_counter))
+            thread_counter += 1
+        else:
+            if is_still_empty:
+                time.sleep(0.005)
+                continue
+            else:
+                is_still_empty = True
+                print("sleeping")
+                time.sleep(0.5)
 
 
 def calc_angle(lst_of_data, counter):
