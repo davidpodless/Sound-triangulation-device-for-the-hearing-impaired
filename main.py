@@ -21,7 +21,7 @@ newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./wav_files') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./wav_files/48k_350_0_v2.wav']
+	return ['./wav_files/48k_350_45.wav']
 
 
 def fake_record(files, frames):
@@ -69,10 +69,12 @@ if __name__ == '__main__':
 	computingThread.join()
 	# computing.draw_graph()
 	points_in_data = []
+	print("finished")
 	while results:
 		#
 		toPrint = results.pop()
-		if toPrint == 0:
+		# print(type(toPrint))
+		if isinstance(toPrint, int):
 			continue
 
 		print(toPrint)
