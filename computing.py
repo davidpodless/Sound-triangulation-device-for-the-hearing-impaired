@@ -83,14 +83,25 @@ def calc_angle(lst_of_data, counter):
             location_of_real_peaks_in_data.append(index)'''
     fft_signal = scipy.fftpack.fft(lst_of_data)
     db_list = []
-    for snapshot in fft_signal.T:
-        i = snapshot.T
-        res = []
-        for mic in i:
-            res.append(average_db(mic))
-        db_list.append(average_db(res))
+    # for i in range(3):
+    #     summ = np.sum(np.square(np.abs(fft_signal)), axis=i)
+    #     print(i, len(summ), len(summ[0]), summ)
+
+    first_step = np.sum(np.square(np.abs(fft_signal)), axis=1) / 4
+    second_step = np.sum(np.square(np.abs(first_step)), axis=0) / 16
+    # print(len(second_step))
+
+    # for snapshot in fft_signal.T:
+    #     i = snapshot
+    #     res = []
+    #     for mic in i:
+    #         res.append(average_db(mic))
+    #     db_list.append(average_db(res))
+    # print(np.asarray(db_list) / second_step)
+    # assert (np.asarray(db_list) == second_step).any()
+    # exit()
     # print(find_peaks(db_list))
-    location_of_real_peaks_in_data = find_peaks(db_list, counter)[1]
+    location_of_real_peaks_in_data = find_peaks(second_step, counter)[1]
 
 
     # fft_signal = scipy.fftpack.fft(lst_of_data)
@@ -126,7 +137,7 @@ def calc_angle(lst_of_data, counter):
         angles = []
         for index in indexes:
             angles.append((index * ANGLE_OF_DIRECTIONS, final_vector[index]))
-        # print(angles)
+        print(angles)
         return angles
     except IndexError:
         return []
