@@ -5,6 +5,7 @@ from kivy.graphics import *
 from kivy.core.window import Window
 import math
 import util
+import random
 
 RADIUS = 180
 
@@ -12,6 +13,7 @@ RADIUS = 180
 class SoundCircle(Widget):
 	def __init__(self, **kwarg):
 		super(SoundCircle, self).__init__(**kwarg)
+		original_circle = None
 		self.line = None
 		self.circle_center = None
 		with self.canvas:
@@ -25,6 +27,7 @@ class SoundCircle(Widget):
 				circle_points.append(self.circle_center[0] + x)
 				circle_points.append(self.circle_center[1] + y)
 
+			SoundCircle.original_circle = circle_points[:]
 			self.line = Line(points=circle_points,
 			                 close=True,
 			                 width=3)
@@ -32,13 +35,19 @@ class SoundCircle(Widget):
 			Clock.schedule_interval(self.update, 1 / 60)
 
 	def update(self, *args):
+		angle_list = []
+		self.line.points = SoundCircle.original_circle[:]
+		for _ in range(4):
+			pair = (random.randint(0, 360), random.randint(0, 3))
+			angle_list.append(pair)
+
 		for coor_ind in range(0, len(self.line.points), 2):
 			x = self.line.points[coor_ind] - self.circle_center[0]
 			y = self.line.points[coor_ind + 1] - self.circle_center[1]
 			_, ang_rad = util.cart2pol(x, y)
 			ang_deg = math.degrees(ang_rad)
 			x_new, y_new = util.pol2cart(RADIUS * (
-				util.build_multiple_gausians([(30, 1), (230, 2)])(ang_deg)),
+				util.build_multiple_gausians(angle_list)(ang_deg)),
 			                             ang_rad)
 			self.line.points[coor_ind] = x_new + self.circle_center[0]
 			self.line.points[coor_ind + 1] = y_new + self.circle_center[1]
