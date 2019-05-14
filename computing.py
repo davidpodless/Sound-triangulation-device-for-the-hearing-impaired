@@ -127,7 +127,7 @@ def calc_angle(lst_of_data, counter):
         # print(angles)
         return angles
     except IndexError:
-        return [], counter
+        return []
 
 def find_peaks(raw_signal, counter):
     """
@@ -212,27 +212,6 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
         P_MUSIC_phi.append(1 / result)
 
     return np.asarray(P_MUSIC_phi)
-
-    final_angle = (signal.argrelmax(np.asarray(P_MUSIC_phi), mode='warp')[0])
-
-    MUSIC_results = []
-    for j in range(M):
-        max = -10
-        for i in final_angle:
-            if i in MUSIC_results:
-                continue
-            else:
-                if P_MUSIC_phi[i] > THRESHOLD_FOR_MUSIC_PEAK and P_MUSIC_phi[i] > max:
-                    max = i
-        if max > -10:
-            MUSIC_results.append(max)
-    for i in range(len(MUSIC_results)):
-        MUSIC_results[i] *= ANGLE_OF_DIRECTIONS
-
-    if len(MUSIC_results) == 1:
-        MUSIC_results = MUSIC_results[0]
-
-    return MUSIC_results
 
 
 def potential_phi(freq):
