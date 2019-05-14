@@ -12,7 +12,7 @@ RADIUS = 180
 class SoundCircle(Widget):
 	def __init__(self, **kwarg):
 		super(SoundCircle, self).__init__(**kwarg)
-		self.line: Line = None
+		self.line = None
 		self.circle_center = None
 		with self.canvas:
 			Color(0.35, 0.35, 0.65, 1)
