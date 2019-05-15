@@ -21,7 +21,7 @@ def extract_data(frames, results):
     """
     is_still_empty = False
     thread_counter = 0
-    avg_db = 200
+    avg_db = 20
     while True:
         next_sample = 0
         while type(next_sample) == int and frames:
@@ -86,15 +86,19 @@ def calc_angle(lst_of_data, avg_db, counter):
         if mode_of_frequencies[index] >= THRESHOLD_FOR_MODE:
             location_of_real_peaks_in_data.append(index)'''
     fft_signal = scipy.fftpack.fft(lst_of_data)
+    abs_of_yf = np.abs(fft_signal[:n // 2])
+
+    magnitude_of_frequency = 2.0 / n * abs_of_yf
+    db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
     db_list = []
     # for i in range(3):
     #     summ = np.sum(np.square(np.abs(fft_signal)), axis=i)
-    #     print(i, len(summ), len(summ[0]), summ)
-
-    first_step = np.sum(np.square(np.abs(fft_signal)), axis=1) / 4
+    #     print(i, len(summ), len(summ[0]))
+    # exit()
+    first_step = np.sum(np.square(np.abs(db_of_yf)), axis=1) / 4
     second_step = np.sum(np.square(np.abs(first_step)), axis=0) / 16
     # print(len(second_step))
-
+    summ = np.sum(np.square(np.abs(db_of_yf)), axis=0)[0]
     # for snapshot in fft_signal.T:
     #     i = snapshot
     #     res = []
@@ -105,7 +109,7 @@ def calc_angle(lst_of_data, avg_db, counter):
     # assert (np.asarray(db_list) == second_step).any()
     # exit()
     # print(find_peaks(db_list))
-    peaks = find_peaks(second_step, avg_db, counter)
+    peaks = find_peaks(summ, avg_db, counter)
     print(avg_db, peaks[0])
     location_of_real_peaks_in_data = peaks[1]
 
@@ -134,9 +138,9 @@ def calc_angle(lst_of_data, avg_db, counter):
 
     final_vector = sum_vectors(np.asarray(results))
     # if counter == COUNTER:
-    #     plt.plot(X, final_vector)
-    #     plt.title("counter = " + str(COUNTER) + " final MUSIC plot")
-    #     plt.show()
+    plt.plot(X, final_vector)
+    plt.title("counter = " + str(counter) + " final MUSIC plot")
+    plt.show()
 
     try:
         indexes = (signal.argrelmax(np.asarray(final_vector), mode='warp')[0])
@@ -167,9 +171,9 @@ def find_peaks(raw_signal, avg, counter):
 
     magnitude_of_frequency = 2.0 / n * abs_of_yf
     db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
-    plt.plot(xf, db_of_yf)
-    plt.show()
-    result = signal.find_peaks(db_of_yf, max(200,avg))
+    # plt.plot(xf, db_of_yf)
+    # plt.show()
+    result = signal.find_peaks(db_of_yf, max(30,avg))
     # if counter == COUNTER:
     #     plt.plot(xf, db_of_yf)
     #     plt.show()
@@ -223,7 +227,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
             M += 1
     if M >= 4:
         return "Too much signals to process"
-
+    M = 1
     P_MUSIC_phi = []
     for index, angle in enumerate(s_phi):
         result = 0
