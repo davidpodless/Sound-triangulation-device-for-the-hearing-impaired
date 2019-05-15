@@ -119,4 +119,4 @@ def fft_test():
 
 
 if __name__=="__main__":
-	fft_test()
+	print(RECORD_BUFFER_MAX)

@@ -21,6 +21,7 @@ def extract_data(frames, results):
     """
     is_still_empty = False
     thread_counter = 0
+    avg_db = 200
     while True:
         next_sample = 0
         while type(next_sample) == int and frames:
@@ -35,7 +36,11 @@ def extract_data(frames, results):
                 for i in range(1, 5):
                     ch_data[i-1] = (np_data[i::6])
                 list_of_data_sent_to_calc.append(ch_data)
-            results.appendleft(calc_angle(list_of_data_sent_to_calc, thread_counter))
+            angle, db = calc_angle(list_of_data_sent_to_calc,avg_db,
+                                   thread_counter)
+            avg_db -= (avg_db / LEN_OF_AVG)
+            avg_db += (db / LEN_OF_AVG)
+            results.appendleft(angle)
             thread_counter += 1
             # if thread_counter == COUNTER+1:
             #     # exit()
@@ -48,7 +53,7 @@ def extract_data(frames, results):
                 time.sleep(0.005)
 
 
-def calc_angle(lst_of_data, counter):
+def calc_angle(lst_of_data, avg_db, counter):
     """
     :param lst_of_data: list of NUM_OF_SNAPSHOTS_FOR_MUSIC arrays, for each
     array: n=4, in each cell the signal from the i-th mic
@@ -100,7 +105,9 @@ def calc_angle(lst_of_data, counter):
     # assert (np.asarray(db_list) == second_step).any()
     # exit()
     # print(find_peaks(db_list))
-    location_of_real_peaks_in_data = find_peaks(second_step, counter)[1]
+    peaks = find_peaks(second_step, avg_db, counter)
+    print(avg_db, peaks[0])
+    location_of_real_peaks_in_data = peaks[1]
 
 
     # fft_signal = scipy.fftpack.fft(lst_of_data)
@@ -115,7 +122,7 @@ def calc_angle(lst_of_data, counter):
         freq = xf[location_of_real_peaks_in_data[index]]
         # if counter == COUNTER:
         #     print(freq)
-        if freq <= 150:
+        if freq <= 250:
             continue
         db = 20 * scipy.log10(2.0 / n * np.abs(fft_vector))
         result = MUSIC_algorithm(fft_vector, freq, counter)
@@ -136,12 +143,12 @@ def calc_angle(lst_of_data, counter):
         angles = []
         for index in indexes:
             angles.append((index * ANGLE_OF_DIRECTIONS, final_vector[index]))
-        print(angles)
-        return angles
+        # print(angles)
+        return angles, peaks[2]
     except IndexError:
-        return [], counter
+        return [], peaks[2]
 
-def find_peaks(raw_signal, counter):
+def find_peaks(raw_signal, avg, counter):
     """
     :param raw_signal: raw signal from the mics
     :param avr: the db average of the signal for the last RECORD_SECONDS seconds
@@ -160,8 +167,9 @@ def find_peaks(raw_signal, counter):
 
     magnitude_of_frequency = 2.0 / n * abs_of_yf
     db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
-
-    result = signal.find_peaks(db_of_yf, 250)
+    plt.plot(xf, db_of_yf)
+    plt.show()
+    result = signal.find_peaks(db_of_yf, max(200,avg))
     # if counter == COUNTER:
     #     plt.plot(xf, db_of_yf)
     #     plt.show()
