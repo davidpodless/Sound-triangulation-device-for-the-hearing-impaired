@@ -95,8 +95,8 @@ def calc_angle(lst_of_data, avg_db, counter):
     #     summ = np.sum(np.square(np.abs(fft_signal)), axis=i)
     #     print(i, len(summ), len(summ[0]))
     # exit()
-    first_step = np.sum(np.square(np.abs(db_of_yf)), axis=1) / 4
-    second_step = np.sum(np.square(np.abs(first_step)), axis=0) / 16
+    # first_step = np.sum(np.square(np.abs(db_of_yf)), axis=1) / 4
+    # second_step = np.sum(np.square(np.abs(first_step)), axis=0) / 16
     # print(len(second_step))
     summ = np.sum(np.square(np.abs(db_of_yf)), axis=0)[0]
     # for snapshot in fft_signal.T:
@@ -110,7 +110,7 @@ def calc_angle(lst_of_data, avg_db, counter):
     # exit()
     # print(find_peaks(db_list))
     peaks = find_peaks(summ, avg_db, counter)
-    print(avg_db, peaks[0])
+    # print(avg_db, peaks[0])
     location_of_real_peaks_in_data = peaks[1]
 
 
@@ -138,9 +138,9 @@ def calc_angle(lst_of_data, avg_db, counter):
 
     final_vector = sum_vectors(np.asarray(results))
     # if counter == COUNTER:
-    plt.plot(X, final_vector)
-    plt.title("counter = " + str(counter) + " final MUSIC plot")
-    plt.show()
+    # plt.plot(X, final_vector)
+    # plt.title("counter = " + str(counter) + " final MUSIC plot")
+    # plt.show()
 
     try:
         indexes = (signal.argrelmax(np.asarray(final_vector), mode='warp')[0])
@@ -227,7 +227,8 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
             M += 1
     if M >= 4:
         return "Too much signals to process"
-    M = 1
+    M = 3
+    #TODO - add permotations? meaning - try "what if" for each eigenvector is not 0
     P_MUSIC_phi = []
     for index, angle in enumerate(s_phi):
         result = 0
@@ -236,27 +237,27 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
         P_MUSIC_phi.append(1 / result)
 
     return np.asarray(P_MUSIC_phi)
-
-    final_angle = (signal.argrelmax(np.asarray(P_MUSIC_phi), mode='warp')[0])
-
-    MUSIC_results = []
-    for j in range(M):
-        max = -10
-        for i in final_angle:
-            if i in MUSIC_results:
-                continue
-            else:
-                if P_MUSIC_phi[i] > THRESHOLD_FOR_MUSIC_PEAK and P_MUSIC_phi[i] > max:
-                    max = i
-        if max > -10:
-            MUSIC_results.append(max)
-    for i in range(len(MUSIC_results)):
-        MUSIC_results[i] *= ANGLE_OF_DIRECTIONS
-
-    if len(MUSIC_results) == 1:
-        MUSIC_results = MUSIC_results[0]
-
-    return MUSIC_results
+    #
+    # final_angle = (signal.argrelmax(np.asarray(P_MUSIC_phi), mode='warp')[0])
+    #
+    # MUSIC_results = []
+    # for j in range(M):
+    #     max = -10
+    #     for i in final_angle:
+    #         if i in MUSIC_results:
+    #             continue
+    #         else:
+    #             if P_MUSIC_phi[i] > THRESHOLD_FOR_MUSIC_PEAK and P_MUSIC_phi[i] > max:
+    #                 max = i
+    #     if max > -10:
+    #         MUSIC_results.append(max)
+    # for i in range(len(MUSIC_results)):
+    #     MUSIC_results[i] *= ANGLE_OF_DIRECTIONS
+    #
+    # if len(MUSIC_results) == 1:
+    #     MUSIC_results = MUSIC_results[0]
+    #
+    # return MUSIC_results
 
 
 def potential_phi(freq):
