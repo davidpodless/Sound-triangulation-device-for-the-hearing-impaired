@@ -82,13 +82,18 @@ def calc_angle(lst_of_data, counter):
         if mode_of_frequencies[index] >= THRESHOLD_FOR_MODE:
             location_of_real_peaks_in_data.append(index)'''
     fft_signal = scipy.fftpack.fft(lst_of_data)
+    abs_of_yf = np.abs(fft_signal[:n // 2])
+ 
+    magnitude_of_frequency = 2.0 / n * abs_of_yf
+    db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
     db_list = []
     # for i in range(3):
     #     summ = np.sum(np.square(np.abs(fft_signal)), axis=i)
     #     print(i, len(summ), len(summ[0]), summ)
 
-    first_step = np.sum(np.square(np.abs(fft_signal)), axis=1) / 4
-    second_step = np.sum(np.square(np.abs(first_step)), axis=0) / 16
+    # first_step = np.sum(np.square(np.abs(fft_signal)), axis=1) / 4
+    # second_step = np.sum(np.square(np.abs(first_step)), axis=0) / 16
+    summ = np.sum(np.square(np.abs(db_of_yf)), axis=0)[0]
     # print(len(second_step))
 
     # for snapshot in fft_signal.T:
@@ -101,7 +106,7 @@ def calc_angle(lst_of_data, counter):
     # assert (np.asarray(db_list) == second_step).any()
     # exit()
     # print(find_peaks(db_list))
-    location_of_real_peaks_in_data = find_peaks(second_step, counter)[1]
+    location_of_real_peaks_in_data = find_peaks(summ, counter)[1]
 
 
     # fft_signal = scipy.fftpack.fft(lst_of_data)
@@ -140,6 +145,7 @@ def calc_angle(lst_of_data, counter):
         print(angles)
         return angles
     except IndexError:
+        print('[]')
         return []
 
 def find_peaks(raw_signal, counter):
@@ -162,7 +168,7 @@ def find_peaks(raw_signal, counter):
     magnitude_of_frequency = 2.0 / n * abs_of_yf
     db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
 
-    result = signal.find_peaks(db_of_yf, 250)
+    result = signal.find_peaks(db_of_yf, 30)
     # if counter == COUNTER:
     #     plt.plot(xf, db_of_yf)
     #     plt.show()
@@ -209,14 +215,14 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
     # large eigenvalue mean signal, the noise should be the eigenvalue 0.
     # TODO maybe try to do M = 3 and that it?
     M = 0
-    # print(np.abs(eigenvalues))
+    print(np.abs(eigenvalues))
     for i in eigenvalues:
         # TODO - choose threshold for the eigenvalues, use records for that.
         if np.abs(i) > THRESHOLD_FOR_EIGENVALUES:
             M += 1
     if M >= 4:
         return "Too much signals to process"
-
+    # M = 3
     P_MUSIC_phi = []
     for index, angle in enumerate(s_phi):
         result = 0

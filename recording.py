@@ -10,7 +10,7 @@ import binascii
 import main
 from systemConstants import *
 from collections import deque
-from pixel_ring.pixel_ring import pixel_ring
+# from pixel_ring.pixel_ring import pixel_ring
 
 
 RESPEAKER_CHANNELS = 6  # change base on firmwares, 1_channel_firmware.bin as 1 or 6_channels_firmware.bin as 6
@@ -25,7 +25,7 @@ dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
 def record(frames, foo):
     # print(type(frames))
     p = pyaudio.PyAudio()
-    pixel_ring.off()
+    # pixel_ring.off()
 
     stream = p.open(
         rate=SAMPLE_RATE,
