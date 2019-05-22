@@ -40,10 +40,13 @@ class DataCollectingThread(threading.Thread):
 	def check_angles_and_time(self):
 		for prev_time_ind in range(len(DataCollectingThread.time_list)):
 			prev_time = DataCollectingThread.time_list[prev_time_ind]
-			if time.time() - prev_time > 3:
+			time_passed = time.time() - prev_time
+			if time_passed > 3:
 				del DataCollectingThread.time_list[prev_time_ind]
 				del DataCollectingThread.angle_list[prev_time_ind]
-			continue
+
+			else:
+				DataCollectingThread.angle_list[prev_time_ind] = (DataCollectingThread.angle_list[prev_time_ind][0], DataCollectingThread.angle_list[prev_time_ind][1] * time_passed/3 )
 
 
 
