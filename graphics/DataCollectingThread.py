@@ -11,9 +11,10 @@ def add_angles():
 		if isinstance(toPrint, int):
 			continue
 
-		print(toPrint)
-		angle_and_amp = (toPrint[0], toPrint[1]/toPrint[1])
-		DataCollectingThread.angle_list.append((angle_and_amp, time.time()))
+		if (toPrint[0] != 0):
+			print(toPrint)
+			angle_and_amp = (toPrint[0], toPrint[1]/toPrint[1])
+			DataCollectingThread.angle_list.append((angle_and_amp, time.time()))
 
 
 class DataCollectingThread(threading.Thread):

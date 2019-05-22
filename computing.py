@@ -215,7 +215,6 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
     # large eigenvalue mean signal, the noise should be the eigenvalue 0.
     # TODO maybe try to do M = 3 and that it?
     M = 0
-    print(np.abs(eigenvalues))
     for i in eigenvalues:
         # TODO - choose threshold for the eigenvalues, use records for that.
         if np.abs(i) > THRESHOLD_FOR_EIGENVALUES:
