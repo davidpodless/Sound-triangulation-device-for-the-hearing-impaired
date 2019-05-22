@@ -220,15 +220,16 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
     # large eigenvalue mean signal, the noise should be the eigenvalue 0.
     # TODO maybe try to do M = 3 and that it?
     M = 0
-    # print(np.abs(eigenvalues))
+    print(np.abs(eigenvalues))
     for i in eigenvalues:
         # TODO - choose threshold for the eigenvalues, use records for that.
         if np.abs(i) > THRESHOLD_FOR_EIGENVALUES:
             M += 1
     if M >= 4:
         return "Too much signals to process"
-    M = 3
+    # M = 3
     #TODO - add permotations? meaning - try "what if" for each eigenvector is not 0
+    # M = find_num_of_signals(np.abs(eigenvalues))
     P_MUSIC_phi = []
     for index, angle in enumerate(s_phi):
         result = 0
@@ -315,3 +316,27 @@ def average_db(vector):
 
 def sum_vectors(vectors):
     return np.sum(vectors, axis=0)
+
+
+def find_num_of_signals(eigenvalues): # todo - ask orr about this
+    # try to use ration between eigenvalues
+    N = len(eigenvalues)
+    eigenvalues = np.flip(eigenvalues, axis=0)
+
+    print(np.abs(eigenvalues))
+    # exit()
+    MDL = []
+    AIC = []
+    for d in range(N-1):
+        # print(np.abs(eigenvalues[d:]))
+        L = -NUM_OF_SNAPSHOTS_FOR_MUSIC * (NUM_OF_MICS - 1) * np.log10(gmean(eigenvalues[d:]) / np.mean(eigenvalues[d:]))
+        MDL.append(L + 0.5*d*(2*NUM_OF_MICS - d)*np.log10(NUM_OF_SNAPSHOTS_FOR_MUSIC))
+        AIC.append(L + d*(2*NUM_OF_MICS - d))
+        # print(L)
+    index = np.real(MDL).argmin()
+    print(MDL)
+    print(AIC)
+    # print(len(MDL))
+    print(index)
+    # exit()
+    return index
