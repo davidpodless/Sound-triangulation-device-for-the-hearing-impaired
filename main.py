@@ -62,8 +62,9 @@ def main():
 	dataHandleThread.start()
 	SoundCircle.SoundCircleApp().run()
 
-
 	computingThread.join()
+	while true:
+		print(results)
 	points_in_data = []
 
 if __name__ == '__main__':

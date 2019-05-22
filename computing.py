@@ -144,6 +144,7 @@ def calc_angle(lst_of_data, counter):
             angles.append((index * ANGLE_OF_DIRECTIONS, final_vector[index]))
         # print(angles)
         return angles
+
     except IndexError:
         # print('[]')
         return []
