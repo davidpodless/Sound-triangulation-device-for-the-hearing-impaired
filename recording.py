@@ -16,7 +16,15 @@ from collections import deque
 RESPEAKER_CHANNELS = 6  # change base on firmwares, 1_channel_firmware.bin as 1 or 6_channels_firmware.bin as 6
 RESPEAKER_WIDTH = 2
 # run getDeviceInfo.py to get index
-RESPEAKER_INDEX = 0  # refer to input device id
+p = pyaudio.PyAudio()
+info = p.get_host_api_info_by_index(0)
+numdevices = info.get('deviceCount')
+
+for i in range(0, numdevices):
+        if (p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
+            print("Input Device id ", i, " - ", p.get_device_info_by_host_api_device_index(0, i).get('name'))
+
+RESPEAKER_INDEX = 1  # refer to input device id
 WAVE_OUTPUT_FILENAME = "output.wav"
 
 dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
