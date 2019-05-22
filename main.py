@@ -63,16 +63,16 @@ def main():
 
 	# recordingThread.start()
 	computingThread.start()
+	while True:
+		print('results')
+		print(results)
+		time.sleep(3)
 
 	dataHandleThread = DataCollectingThread.DataCollectingThread([results], name='Data thread')
 	dataHandleThread.start()
 	SoundCircle.SoundCircleApp().run()
 
 	computingThread.join()
-	while True:
-		print('results')
-		print(results)
-		time.sleep(3)
 
 	points_in_data = []
 
