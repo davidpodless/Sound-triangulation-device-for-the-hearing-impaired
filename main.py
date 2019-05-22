@@ -66,11 +66,12 @@ def main():
 
 	dataHandleThread = DataCollectingThread.DataCollectingThread([results], name='Data thread')
 	dataHandleThread.start()
+	graphicThread = GraphicRunnerThread.GraphicRunnerThread(name='Graphic thread')
+	graphicThread.start()
 	while True:
 		print('results')
 		print(results)
 		time.sleep(3)
-	SoundCircle.SoundCircleApp().run()
 
 
 	computingThread.join()
