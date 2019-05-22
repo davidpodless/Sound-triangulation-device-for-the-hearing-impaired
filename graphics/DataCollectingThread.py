@@ -1,6 +1,6 @@
 import threading
 import time
-
+import util
 
 def add_angle_and_time(angle_and_amp):
 	DataCollectingThread.angle_list.append(angle_and_amp)
@@ -39,19 +39,19 @@ class DataCollectingThread(threading.Thread):
 			time.sleep(1 / 30)
 
 	def check_angles_and_time(self):
+
 		for prev_time_ind in range(len(DataCollectingThread.time_list)):
 			prev_time = DataCollectingThread.time_list[prev_time_ind]
+			gaussian = util.build_gaussian_for_circle(1.5, 2)
 			time_passed = time.time() - prev_time
 			if time_passed > 3:
 				del DataCollectingThread.time_list[prev_time_ind]
 				del DataCollectingThread.angle_list[prev_time_ind]
-
 			else:
-				print(DataCollectingThread.angle_list)
-				print(time_passed)
+				print(gaussian(time_passed))
 				DataCollectingThread.angle_list[prev_time_ind] = \
 					(DataCollectingThread.angle_list[prev_time_ind][0],
-					 1 * time_passed)
+					 1 * gaussian(time_passed))
 
 
 def angle_list():
