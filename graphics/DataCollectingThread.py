@@ -31,7 +31,6 @@ class DataCollectingThread(threading.Thread):
 
 	def run(self):
 		while True:
-			DataCollectingThread.angle_list = []
 			add_angles()
 			time.sleep(0.25)
 
