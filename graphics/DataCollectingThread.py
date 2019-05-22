@@ -6,6 +6,8 @@ def add_angle_and_time(angle_and_amp):
 	DataCollectingThread.angle_list.append((angle_and_amp, time.time()))
 
 def add_angles():
+	print('DataCollectingThread.data')
+	print(DataCollectingThread.data)
 	while DataCollectingThread.data:
 		toPrint = DataCollectingThread.data.pop()
 		if isinstance(toPrint, int):
