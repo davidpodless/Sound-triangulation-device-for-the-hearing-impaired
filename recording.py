@@ -19,12 +19,13 @@ RESPEAKER_WIDTH = 2
 p = pyaudio.PyAudio()
 info = p.get_host_api_info_by_index(0)
 numdevices = info.get('deviceCount')
+RESPEAKER_INDEX = 2   # refer to input device id
 
 for i in range(0, numdevices):
         if (p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
             print("Input Device id ", i, " - ", p.get_device_info_by_host_api_device_index(0, i).get('name'))
+            RESPEAKER_INDEX = i
 
-RESPEAKER_INDEX = 1  # refer to input device id
 WAVE_OUTPUT_FILENAME = "output.wav"
 
 dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
