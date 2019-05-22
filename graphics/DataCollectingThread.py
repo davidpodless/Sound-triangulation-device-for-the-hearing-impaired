@@ -7,9 +7,9 @@ def add_angle_and_time(angle_and_amp):
 
 def add_angles():
 	print('toPrint')
-	print(DataCollectingThread.data)
-	while DataCollectingThread.data:
-		toPrint = DataCollectingThread.data.pop()
+	print(DataCollectingThread.data[0])
+	while DataCollectingThread.data[0]:
+		toPrint = DataCollectingThread.data[0].pop()
 
 		if isinstance(toPrint, int):
 			continue
@@ -26,7 +26,7 @@ class DataCollectingThread(threading.Thread):
 	angle_list = []
 	data = None
 
-	def __init__(self, *data, name=''):
+	def __init__(self, data, name=''):
 		super().__init__(name=name)
 		DataCollectingThread.data = data
 
