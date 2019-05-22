@@ -4,4 +4,5 @@ import graphics.SoundCircle as SoundCircle
 
 class GraphicRunnerThread(threading.Thread):
 	def run(self):
-		SoundCircle.SoundCircleApp().run()
+		self.graphicThread = SoundCircle.SoundCircleApp()
+		self.graphicThread.run()
