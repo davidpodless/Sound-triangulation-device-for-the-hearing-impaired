@@ -8,7 +8,7 @@ from systemConstants import *
 from cmath import rect
 import statistics
 
-# COUNTER = 50
+# COUNTER = 0
 # TODO - check value for 2 signals, should work, verify that.
 # TODO 2 - dealing with complex signals (different frequencies in the same NUM_OF_SNAPSHOT) - seem like it should work NEED TESTING!!!
 
@@ -38,8 +38,9 @@ def extract_data(frames, results):
                 list_of_data_sent_to_calc.append(ch_data)
             angle, db = calc_angle(list_of_data_sent_to_calc,avg_db,
                                    thread_counter)
-            avg_db -= (avg_db / LEN_OF_AVG)
-            avg_db += (db / LEN_OF_AVG)
+            # avg_db -= (avg_db / LEN_OF_AVG)
+            # avg_db += (db / LEN_OF_AVG)
+            # print(avg_db)
             results.appendleft(angle)
             thread_counter += 1
             # if thread_counter == COUNTER+1:
@@ -57,6 +58,7 @@ def calc_angle(lst_of_data, avg_db, counter):
     """
     :param lst_of_data: list of NUM_OF_SNAPSHOTS_FOR_MUSIC arrays, for each
     array: n=4, in each cell the signal from the i-th mic
+    :param avg_db: the average of the db in the area in the last RECORD_SECONDS seconds
     :param counter: for testing, counting how much into the signal the
     compute will go
     :return: the frequency and the angles of the signal. in case where there
@@ -86,19 +88,14 @@ def calc_angle(lst_of_data, avg_db, counter):
         if mode_of_frequencies[index] >= THRESHOLD_FOR_MODE:
             location_of_real_peaks_in_data.append(index)'''
     fft_signal = scipy.fftpack.fft(lst_of_data)
-    abs_of_yf = np.abs(fft_signal[:n // 2])
+    abs_of_yf = np.abs(fft_signal[:, :, :n // 2])
 
     magnitude_of_frequency = 2.0 / n * abs_of_yf
     db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
     db_list = []
-    # for i in range(3):
-    #     summ = np.sum(np.square(np.abs(fft_signal)), axis=i)
-    #     print(i, len(summ), len(summ[0]))
-    # exit()
     # first_step = np.sum(np.square(np.abs(db_of_yf)), axis=1) / 4
     # second_step = np.sum(np.square(np.abs(first_step)), axis=0) / 16
-    # print(len(second_step))
-    summ = np.sum(np.square(np.abs(db_of_yf)), axis=0)[0]
+    dB_for_find_peaks = np.sum(np.square(np.abs(db_of_yf)), axis=0)[0]
     # for snapshot in fft_signal.T:
     #     i = snapshot
     #     res = []
@@ -109,7 +106,8 @@ def calc_angle(lst_of_data, avg_db, counter):
     # assert (np.asarray(db_list) == second_step).any()
     # exit()
     # print(find_peaks(db_list))
-    peaks = find_peaks(summ, avg_db, counter)
+    # print(dB_for_find_peaks)
+    peaks = find_peaks(dB_for_find_peaks, avg_db, counter)
     # print(avg_db, peaks[0])
     location_of_real_peaks_in_data = peaks[1]
 
@@ -133,7 +131,7 @@ def calc_angle(lst_of_data, avg_db, counter):
         results.append(result)
         # if counter == COUNTER:
         #     plt.plot(X, result)
-        #     plt.title("counter = " + str(COUNTER) + " freq = " + str(int(freq)))
+        #     plt.title("counter = " + str(counter) + " freq = " + str(int(freq)))
         #     plt.show()
 
     final_vector = sum_vectors(np.asarray(results))
@@ -173,7 +171,12 @@ def find_peaks(raw_signal, avg, counter):
     db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
     # plt.plot(xf, db_of_yf)
     # plt.show()
+    # plt.close()
+    # plt.plot(xf,db_of_yf)
+    # plt.show()
+    # plt.close()
     result = signal.find_peaks(db_of_yf, max(30,avg))
+
     # if counter == COUNTER:
     #     plt.plot(xf, db_of_yf)
     #     plt.show()
@@ -206,6 +209,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
         vector = nprect(1, np.angle(vector))
         R = sum_of_matrix(R, matrix_from_vector(vector))
     R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
+
     """now, R is N*N matrix with rank M. meaning, there is N-M eigenvectors
     corresponding to the zero eigenvalue"""
     eigenvalues, eigenvectors = np.linalg.eig(R)

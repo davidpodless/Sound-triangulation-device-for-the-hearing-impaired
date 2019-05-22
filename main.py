@@ -25,64 +25,67 @@ def getFileslist():
 
 
 def fake_record(files, frames):
-	print("was in fake record")
-	print(files)
-	for file in files:
-		wav = wave.open(file)
-		print(file.title())
-		if not CHUNK_RECORDING:
-			while True:
-				data = wav.readframes(CHUNK)
-				if data != b'':
-					frames.appendleft(data)
-				else:
-					break
-		else:
-			counter = 0
-			lst = []
-			while True:
-				data = wav.readframes(CHUNK)
-				if data != b'':
-					lst.append(data)
-					counter = (counter + 1) % NUM_OF_SNAPSHOTS_FOR_MUSIC
-					if counter == 0:
-						frames.appendleft(lst.copy())
-						lst.clear()
-				else:
-					break
+    print("was in fake record")
+    print(files)
+    for file in files:
+        wav = wave.open(file)
+        print(file.title())
+        if not CHUNK_RECORDING:
+            while True:
+                data = wav.readframes(CHUNK)
+                if data != b'':
+                    frames.appendleft(data)
+                else:
+                    break
+        else:
+            counter = 0
+            lst = []
+            while True:
+                data = wav.readframes(CHUNK)
+                if data != b'':
+                    lst.append(data)
+                    counter = (counter + 1) % NUM_OF_SNAPSHOTS_FOR_MUSIC
+                    if counter == 0:
+                        frames.appendleft(lst.copy())
+                        lst.clear()
+                else:
+                    break
 
 
 if __name__ == '__main__':
-	# print(THRESHOLD_FOR_MODE)
-	# print(RECORD_BUFFER_MAX) todo: delete this
-	frames = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
-	results = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
-	# recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
-	fakeRecordingThread = threading.Thread(group=None, target=fake_record, name="fake recording thread", args=(getFileslist(), frames))
-	computingThread = threading.Thread(group=None, target=computing.extract_data, name="compute thread", args=(frames, results))
+    # print(THRESHOLD_FOR_MODE)
+    # print(RECORD_BUFFER_MAX) todo: delete this
+    frames = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
+    results = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
+    # recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
+    fakeRecordingThread = threading.Thread(group=None, target=fake_record, name="fake recording thread", args=(getFileslist(), frames))
+    computingThread = threading.Thread(group=None, target=computing.extract_data, name="compute thread", args=(frames, results))
 
-	# recordingThread.start()
-	fakeRecordingThread.start()
-	# fakeRecordingThread.join()
-	computingThread.start()
+    # recordingThread.start()
+    fakeRecordingThread.start()
+    # fakeRecordingThread.join()
+    computingThread.start()
 
-	computingThread.join()
-	# computing.draw_graph()
-	points_in_data = []
-	print("finished")
-	while results:
-		#
-		toPrint = results.pop()
-		# print(type(toPrint))
-		if isinstance(toPrint, int):
-			continue
+    computingThread.join()
+    # computing.draw_graph()
+    points_in_data = []
+    print("finished")
+    i = 0
+    while results:
+        #
+        toPrint = results.pop()
+        # print(type(toPrint))
+        if isinstance(toPrint, int):
+            continue
 
-		print(toPrint)
-		# for result in toPrint:
-			# print(result[1])
-			# if result[1] not in mode:  # count how many time specific frequency is in the data
-			# 	mode[result[1]] = 1
-			# else:
-			# 	mode[result[1]] += 1
-	# ordered_mode = collections.OrderedDict(mode)
-	# print(sorted(mode.items(), key=lambda x:x[1]))
+        print(toPrint)
+        i += 1
+        # for result in toPrint:
+            # print(result[1])
+            # if result[1] not in mode:  # count how many time specific frequency is in the data
+            #     mode[result[1]] = 1
+            # else:
+            #     mode[result[1]] += 1
+    # ordered_mode = collections.OrderedDict(mode)
+    # print(sorted(mode.items(), key=lambda x:x[1]))
+    print(i)
