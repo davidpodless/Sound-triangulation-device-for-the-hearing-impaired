@@ -71,11 +71,6 @@ def main():
 	# graphicThread.start()
 	graphicThread = SoundCircle.SoundCircleApp()
 	graphicThread.run()
-	while True:
-		print('results')
-		print(results)
-		time.sleep(3)
-
 
 	computingThread.join()
 
