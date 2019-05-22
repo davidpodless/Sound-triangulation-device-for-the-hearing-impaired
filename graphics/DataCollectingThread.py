@@ -4,6 +4,8 @@ import random
 
 def add_angle_and_time(angle_and_amp):
 	DataCollectingThread.angle_list.append(angle_and_amp)
+	print('DataCollectingThread.angle_list')
+	print(DataCollectingThread.angle_list)
 
 def add_angles():
 	while DataCollectingThread.data[0]:
@@ -14,8 +16,6 @@ def add_angles():
 		if len(toPrint) == 0:
 			continue
 		if toPrint[0] != 0:
-			print('toPrint')
-			print(toPrint[0])
 			if (toPrint[0][1] != 0):
 				angle_and_amp = (toPrint[0][0], toPrint[0][1]/toPrint[0][1])
 				add_angle_and_time(angle_and_amp)
