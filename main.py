@@ -6,6 +6,8 @@ import computing
 from systemConstants import *
 import graphics.SoundCircle as SoundCircle
 import graphics.DataCollectingThread as DataCollectingThread
+import time
+
 
 '''this program uses MKS system'''
 
@@ -63,8 +65,10 @@ def main():
 	SoundCircle.SoundCircleApp().run()
 
 	computingThread.join()
-	while true:
+	while True:
+		print('results')
 		print(results)
+		time.sleep(3)
 	points_in_data = []
 
 if __name__ == '__main__':
