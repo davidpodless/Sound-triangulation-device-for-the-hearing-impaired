@@ -69,7 +69,8 @@ def main():
 	dataHandleThread.start()
 	# graphicThread = GraphicRunnerThread.GraphicRunnerThread(name='Graphic thread')
 	# graphicThread.start()
-	SoundCircle.SoundCircleApp.run()
+	# graphicThread = GraphicRunnerThread.GraphicRunnerThread(name='Graphic thread')
+	SoundCircle.SoundCircleApp().run()
 	while True:
 		print('results')
 		print(results)
