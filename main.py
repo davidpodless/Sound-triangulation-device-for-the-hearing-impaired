@@ -63,14 +63,15 @@ def main():
 
 	# recordingThread.start()
 	computingThread.start()
+
+	dataHandleThread = DataCollectingThread.DataCollectingThread([results], name='Data thread')
+	dataHandleThread.start()
+	SoundCircle.SoundCircleApp().start()
 	while True:
 		print('results')
 		print(results)
 		time.sleep(3)
 
-	dataHandleThread = DataCollectingThread.DataCollectingThread([results], name='Data thread')
-	dataHandleThread.start()
-	SoundCircle.SoundCircleApp().run()
 
 	computingThread.join()
 
