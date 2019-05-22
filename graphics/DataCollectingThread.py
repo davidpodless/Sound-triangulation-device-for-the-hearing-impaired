@@ -9,6 +9,7 @@ def add_angles():
 	print('DataCollectingThread.data')
 	print(DataCollectingThread.data)
 	while DataCollectingThread.data:
+		print('test')
 		toPrint = DataCollectingThread.data.pop()
 		if isinstance(toPrint, int):
 			continue
