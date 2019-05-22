@@ -48,6 +48,7 @@ class DataCollectingThread(threading.Thread):
 
 			else:
 				print(DataCollectingThread.angle_list)
+				print(time_passed)
 				DataCollectingThread.angle_list[prev_time_ind] = \
 					(DataCollectingThread.angle_list[prev_time_ind][0],
 					 DataCollectingThread.angle_list[prev_time_ind][1] * ( time_passed / 3))
