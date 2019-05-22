@@ -5,6 +5,7 @@ import wave
 import computing
 from systemConstants import *
 import graphics.GraphicRunnerThread as GraphicRunnerThread
+import graphics.SoundCircle as SoundCircle
 import graphics.DataCollectingThread as DataCollectingThread
 import time
 
@@ -66,8 +67,9 @@ def main():
 
 	dataHandleThread = DataCollectingThread.DataCollectingThread([results], name='Data thread')
 	dataHandleThread.start()
-	graphicThread = GraphicRunnerThread.GraphicRunnerThread(name='Graphic thread')
-	graphicThread.start()
+	# graphicThread = GraphicRunnerThread.GraphicRunnerThread(name='Graphic thread')
+	# graphicThread.start()
+	SoundCircle.SoundCircle.run()
 	while True:
 		print('results')
 		print(results)
