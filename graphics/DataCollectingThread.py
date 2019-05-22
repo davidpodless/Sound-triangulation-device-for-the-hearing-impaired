@@ -42,7 +42,7 @@ class DataCollectingThread(threading.Thread):
 
 		for prev_time_ind in range(len(DataCollectingThread.time_list)):
 			prev_time = DataCollectingThread.time_list[prev_time_ind]
-			gaussian = util.build_gaussian(1.5, 30)
+			gaussian = util.build_gaussian(1.5, 1)
 			time_passed = time.time() - prev_time
 			if time_passed > 3:
 				del DataCollectingThread.time_list[prev_time_ind]
