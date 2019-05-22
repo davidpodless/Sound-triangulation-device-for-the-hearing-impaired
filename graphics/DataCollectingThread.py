@@ -51,7 +51,7 @@ class DataCollectingThread(threading.Thread):
 				print(gaussian(time_passed))
 				DataCollectingThread.angle_list[prev_time_ind] = \
 					(DataCollectingThread.angle_list[prev_time_ind][0],
-					 gaussian(time_passed))
+					 4*gaussian(time_passed))
 
 
 def angle_list():
