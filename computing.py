@@ -8,7 +8,7 @@ from systemConstants import *
 from cmath import rect
 import statistics
 
-# COUNTER = 0
+COUNTER = 900
 # TODO - check value for 2 signals, should work, verify that.
 # TODO 2 - dealing with complex signals (different frequencies in the same NUM_OF_SNAPSHOT) - seem like it should work NEED TESTING!!!
 
@@ -120,26 +120,28 @@ def calc_angle(lst_of_data, avg_db, counter):
         separated_vector_for_music.append(fft_signal[:, :, i])
     results = []
     X = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
-    print(str(counter) + "\n-------------------")
+    # print("\n" + str(counter) + "\n-------------------")
     for index, fft_vector in enumerate(separated_vector_for_music):
         freq = xf[location_of_real_peaks_in_data[index]]
-        # if counter == COUNTER:
-        #     print(freq)
-        if freq <= 250:
+        if counter == COUNTER:
+            print(freq)
+        if freq <= 500 or freq >= 1500:
             continue
         db = 20 * scipy.log10(2.0 / n * np.abs(fft_vector))
         result = MUSIC_algorithm(fft_vector, freq, counter)
         results.append(result)
-        # if counter == COUNTER:
-        #     plt.plot(X, result)
-        #     plt.title("counter = " + str(counter) + " freq = " + str(int(freq)))
-        #     plt.show()
+        if counter == COUNTER:
+            print(result[82:85])
+            plt.plot(X, result)
+            plt.title("counter = " + str(counter) + " freq = " + str(int(freq)))
+            plt.show()
 
     final_vector = sum_vectors(np.asarray(results))
-    # if counter == COUNTER:
-    # plt.plot(X, final_vector)
-    # plt.title("counter = " + str(counter) + " final MUSIC plot")
-    # plt.show()
+    if counter == COUNTER:
+        print(final_vector[80:90])
+        plt.plot(X, final_vector)
+        plt.title("counter = " + str(counter) + " final MUSIC plot")
+        plt.show()
 
     try:
         indexes = (signal.argrelmax(np.asarray(final_vector), mode='warp')[0])
@@ -171,6 +173,7 @@ def find_peaks(raw_signal, avg, counter):
     magnitude_of_frequency = 2.0 / n * abs_of_yf
     db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
     # plt.plot(xf, db_of_yf)
+    # plt.title(counter)
     # plt.show()
     # plt.close()
     # plt.plot(xf,db_of_yf)
@@ -178,9 +181,9 @@ def find_peaks(raw_signal, avg, counter):
     # plt.close()
     result = signal.find_peaks(db_of_yf, max(30,avg))
 
-    # if counter == COUNTER:
-    #     plt.plot(xf, db_of_yf)
-    #     plt.show()
+    if counter == COUNTER:
+        plt.plot(xf, db_of_yf)
+        plt.show()
     real_db = result[1]['peak_heights']
     if real_db.size == 0:
         real_db = np.append(real_db, [0])
@@ -329,7 +332,7 @@ def find_num_of_signals(eigenvalues): # todo - ask orr about this
     N = len(eigenvalues)
     eigenvalues = np.flip(eigenvalues, axis=0)
 
-    print(eigenvalues[0]/eigenvalues[1], eigenvalues[1]/eigenvalues[2], eigenvalues[2],eigenvalues[3])
+    # print(eigenvalues[0]/eigenvalues[1], eigenvalues[1]/eigenvalues[2], eigenvalues[2],eigenvalues[3])
     # exit()
     MDL = []
     AIC = []
