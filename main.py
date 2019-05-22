@@ -5,6 +5,7 @@ import recording
 import computing
 from systemConstants import *
 import graphics.SoundCircle as SoundCircle
+import graphics.DataCollectingThread as DataCollectingThread
 
 '''this program uses MKS system'''
 
@@ -56,16 +57,14 @@ def main():
 
 	recordingThread.start()
 	computingThread.start()
+
+	dataHandleThread = DataCollectingThread.DataCollectingThread(results, name="Data thread")
+	dataHandleThread.start()
 	SoundCircle.SoundCircleApp().run()
+
 
 	computingThread.join()
 	points_in_data = []
-	while results:
-		toPrint = results.pop()
-		if isinstance(toPrint, int):
-			continue
-
-		print(toPrint)
 
 if __name__ == '__main__':
 	main()

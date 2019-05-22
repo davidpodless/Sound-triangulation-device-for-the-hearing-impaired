@@ -2,13 +2,26 @@ import threading
 import time
 import random
 
-
 def add_angle_and_time(angle_and_amp):
 	DataCollectingThread.angle_list.append((angle_and_amp, time.time()))
+
+def add_angles():
+	while DataCollectingThread.data:
+		toPrint = DataCollectingThread.data.pop()
+		if isinstance(toPrint, int):
+			continue
+
+		print(toPrint)
+		angle_and_amp = (toPrint[0], toPrint[1]/toPrint[1])
+		DataCollectingThread.angle_list.append((angle_and_amp, time.time()))
 
 
 class DataCollectingThread(threading.Thread):
 	angle_list = []
+	data = None
+
+	def __init__(self, data):
+		DataCollectingThread.data = data
 
 	def run(self):
 		while True:
