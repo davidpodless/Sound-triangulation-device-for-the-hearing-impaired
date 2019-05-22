@@ -27,9 +27,7 @@ class DataCollectingThread(threading.Thread):
 	def run(self):
 		while True:
 			DataCollectingThread.angle_list = []
-			for _ in range(4):
-				pair = (random.randint(0, 360), random.uniform(0, 3))
-				add_angle_and_time(pair)
+			add_angles()
 			time.sleep(0.25)
 
 	def check_angles_and_time(self):
