@@ -120,6 +120,7 @@ def calc_angle(lst_of_data, avg_db, counter):
         separated_vector_for_music.append(fft_signal[:, :, i])
     results = []
     X = ANGLE_OF_DIRECTIONS * np.arange(0, NUM_OF_DIRECTIONS, 1)
+    print(str(counter) + "\n-------------------")
     for index, fft_vector in enumerate(separated_vector_for_music):
         freq = xf[location_of_real_peaks_in_data[index]]
         # if counter == COUNTER:
@@ -224,7 +225,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
     # large eigenvalue mean signal, the noise should be the eigenvalue 0.
     # TODO maybe try to do M = 3 and that it?
     M = 0
-    print(np.abs(eigenvalues))
+    # print(np.abs(eigenvalues))
     for i in eigenvalues:
         # TODO - choose threshold for the eigenvalues, use records for that.
         if np.abs(i) > THRESHOLD_FOR_EIGENVALUES:
@@ -232,6 +233,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
     if M >= 4:
         return "Too much signals to process"
     # M = 3
+    find_num_of_signals(np.abs(eigenvalues))
     #TODO - add permotations? meaning - try "what if" for each eigenvector is not 0
     # M = find_num_of_signals(np.abs(eigenvalues))
     P_MUSIC_phi = []
@@ -327,7 +329,7 @@ def find_num_of_signals(eigenvalues): # todo - ask orr about this
     N = len(eigenvalues)
     eigenvalues = np.flip(eigenvalues, axis=0)
 
-    print(np.abs(eigenvalues))
+    print(eigenvalues[0]/eigenvalues[1], eigenvalues[1]/eigenvalues[2], eigenvalues[2],eigenvalues[3])
     # exit()
     MDL = []
     AIC = []
@@ -338,9 +340,9 @@ def find_num_of_signals(eigenvalues): # todo - ask orr about this
         AIC.append(L + d*(2*NUM_OF_MICS - d))
         # print(L)
     index = np.real(MDL).argmin()
-    print(MDL)
-    print(AIC)
+    # print(MDL)
+    # print(AIC)
     # print(len(MDL))
-    print(index)
+    # print(index)
     # exit()
     return index
