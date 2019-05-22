@@ -142,10 +142,10 @@ def calc_angle(lst_of_data, counter):
         angles = []
         for index in indexes:
             angles.append((index * ANGLE_OF_DIRECTIONS, final_vector[index]))
-        print(angles)
+        # print(angles)
         return angles
     except IndexError:
-        print('[]')
+        # print('[]')
         return []
 
 def find_peaks(raw_signal, counter):
