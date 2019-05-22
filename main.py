@@ -4,7 +4,7 @@ import wave
 # import recording
 import computing
 from systemConstants import *
-import graphics.SoundCircle as SoundCircle
+import graphics.GraphicRunnerThread as GraphicRunnerThread
 import graphics.DataCollectingThread as DataCollectingThread
 import time
 
