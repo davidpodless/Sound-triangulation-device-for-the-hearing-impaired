@@ -26,7 +26,8 @@ class DataCollectingThread(threading.Thread):
 	angle_list = []
 	data = None
 
-	def __init__(self, data):
+	def __init__(self, data, name=''):
+		super().__init__(name=name)
 		DataCollectingThread.data = data
 
 	def run(self):
