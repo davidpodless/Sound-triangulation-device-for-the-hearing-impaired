@@ -51,7 +51,7 @@ class DataCollectingThread(threading.Thread):
 				print(time_passed)
 				DataCollectingThread.angle_list[prev_time_ind] = \
 					(DataCollectingThread.angle_list[prev_time_ind][0],
-					 DataCollectingThread.angle_list[prev_time_ind][1] * ( time_passed / 3))
+					 DataCollectingThread.angle_list[prev_time_ind][1] * time_passed)
 
 
 def angle_list():
