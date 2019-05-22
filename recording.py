@@ -16,7 +16,7 @@ from collections import deque
 RESPEAKER_CHANNELS = 6  # change base on firmwares, 1_channel_firmware.bin as 1 or 6_channels_firmware.bin as 6
 RESPEAKER_WIDTH = 2
 # run getDeviceInfo.py to get index
-RESPEAKER_INDEX = 1  # refer to input device id
+RESPEAKER_INDEX = 0  # refer to input device id
 WAVE_OUTPUT_FILENAME = "output.wav"
 
 dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
