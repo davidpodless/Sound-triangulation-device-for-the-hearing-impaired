@@ -6,6 +6,7 @@ from kivy.core.window import Window
 import math
 import util
 import random
+import graphics.DataCollectingThread as DataCollectingThread
 
 RADIUS = 180
 
@@ -13,7 +14,6 @@ RADIUS = 180
 class SoundCircle(Widget):
 	def __init__(self, **kwarg):
 		super(SoundCircle, self).__init__(**kwarg)
-		original_circle = None
 		self.line = None
 		self.circle_center = None
 		with self.canvas:
@@ -35,11 +35,9 @@ class SoundCircle(Widget):
 			Clock.schedule_interval(self.update, 1 / 60)
 
 	def update(self, *args):
-		angle_list = []
 		self.line.points = SoundCircle.original_circle[:]
-		for _ in range(4):
-			pair = (random.randint(0, 360), random.randint(0, 3))
-			angle_list.append(pair)
+
+		angle_list = DataCollectingThread.DataCollectingThread.angle_list
 
 		for coor_ind in range(0, len(self.line.points), 2):
 			x = self.line.points[coor_ind] - self.circle_center[0]
