@@ -1,15 +1,11 @@
-from os import listdir
-from os.path import isfile, join
 import threading
 from collections import deque
 import wave
-from scipy.io import wavfile
-import numpy as np
-import collections
 import recording
 import computing
-import matplotlib.pyplot as plt
 from systemConstants import *
+import graphics.SoundCircle as SoundCircle
+
 '''this program uses MKS system'''
 
 CHUNK_RECORDING = True
@@ -52,37 +48,24 @@ def fake_record(files, frames):
 					break
 
 
-if __name__ == '__main__':
-	# print(THRESHOLD_FOR_MODE)
-	# print(RECORD_BUFFER_MAX) todo: delete this
+def main():
 	frames = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
 	results = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
 	recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
-	# fakeRecordingThread = threading.Thread(group=None, target=fake_record, name="fake recording thread", args=(getFileslist(), frames))
 	computingThread = threading.Thread(group=None, target=computing.extract_data, name="compute thread", args=(frames, results))
 
 	recordingThread.start()
-	# fakeRecordingThread.start()
-	# fakeRecordingThread.join()
 	computingThread.start()
+	SoundCircle.SoundCircleApp().run()
 
 	computingThread.join()
-	# computing.draw_graph()
 	points_in_data = []
-	print("finished")
 	while results:
-		#
 		toPrint = results.pop()
-		# print(type(toPrint))
 		if isinstance(toPrint, int):
 			continue
 
 		print(toPrint)
-		# for result in toPrint:
-			# print(result[1])
-			# if result[1] not in mode:  # count how many time specific frequency is in the data
-			# 	mode[result[1]] = 1
-			# else:
-			# 	mode[result[1]] += 1
-	# ordered_mode = collections.OrderedDict(mode)
-	# print(sorted(mode.items(), key=lambda x:x[1]))
+
+if __name__ == '__main__':
+	main()
