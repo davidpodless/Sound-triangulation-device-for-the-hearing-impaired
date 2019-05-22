@@ -1,9 +1,10 @@
 import threading
 import time
-import random
+
 
 def add_angle_and_time(angle_and_amp):
 	DataCollectingThread.angle_list.append(angle_and_amp)
+	DataCollectingThread.time_list.append(time.time())
 	print('DataCollectingThread.angle_list')
 	print(DataCollectingThread.angle_list)
 
@@ -23,6 +24,7 @@ def add_angles():
 
 class DataCollectingThread(threading.Thread):
 	angle_list = []
+	time_list = []
 	data = None
 
 	def __init__(self, data, name=''):
@@ -32,10 +34,15 @@ class DataCollectingThread(threading.Thread):
 	def run(self):
 		while True:
 			add_angles()
-			time.sleep(0.25)
+			self.check_angles_and_time()
+			time.sleep(1/30)
 
 	def check_angles_and_time(self):
-		for angle in DataCollectingThread.angle_list:
+		for prev_time_ind in range(len(DataCollectingThread.time_list)):
+			prev_time = DataCollectingThread.time_list[prev_time_ind]
+			if time.time() - prev_time > 3:
+				del DataCollectingThread.time_list[prev_time_ind]
+				del DataCollectingThread.angle_list[prev_time_ind]
 			continue
 
 
