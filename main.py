@@ -21,7 +21,7 @@ newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./wav_files') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./wav_files/48k_350_0_v2.wav']
+	return ['./wav_files/48k_350_45_v2.wav']
 
 
 def fake_record(files, frames):
