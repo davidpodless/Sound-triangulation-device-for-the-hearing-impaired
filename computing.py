@@ -41,7 +41,7 @@ def extract_data(frames, results):
             avg_db -= (avg_db / LEN_OF_AVG)
             avg_db += (db / LEN_OF_AVG)
             avg_db = max(avg_db, 30)
-            print("db = " + str(avg_db))
+            # print("db = " + str(avg_db))
             results.appendleft(angle)
             thread_counter += 1
             # if thread_counter == COUNTER+1:
@@ -145,7 +145,7 @@ def calc_angle(lst_of_data, avg_db, counter):
         angles = []
         for index in indexes:
             angles.append((index * ANGLE_OF_DIRECTIONS, final_vector[index]))
-        print(angles)
+        # print(angles)
         return angles, peaks[2]
     except IndexError:
         # print("[]")

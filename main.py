@@ -25,11 +25,11 @@ def getFileslist():
 
 
 def fake_record(files, frames):
-	print("was in fake record")
-	print(files)
+	# print("was in fake record")
+	# print(files)
 	for file in files:
 		wav = wave.open(file)
-		print(file.title())
+		# print(file.title())
 		if not CHUNK_RECORDING:
 			while True:
 				data = wav.readframes(CHUNK)
