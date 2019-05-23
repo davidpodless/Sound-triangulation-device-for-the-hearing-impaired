@@ -120,34 +120,34 @@ def calc_angle(lst_of_data, avg_db, counter):
     for index, fft_vector in enumerate(separated_vector_for_music):
         freq = xf[location_of_real_peaks_in_data[index]]
         # if counter == COUNTER:
-        print(freq)
+        # print(freq)
         if freq <= 150 or freq >= 1000:
             continue
         db = 20 * scipy.log10(2.0 / n * np.abs(fft_vector))
         result = MUSIC_algorithm(fft_vector, freq, counter)
         results.append(result)
-        if counter == COUNTER:
-            print(result[82:85])
-            plt.plot(X, result)
-            plt.title("counter = " + str(counter) + " freq = " + str(int(freq)))
-            plt.show()
+        # if counter == COUNTER:
+        #     # print(result[82:85])
+        #     plt.plot(X, result)
+        #     plt.title("counter = " + str(counter) + " freq = " + str(int(freq)))
+        #     plt.show()
 
     final_vector = sum_vectors(np.asarray(results))
-    if counter == COUNTER:
-        print(final_vector[80:90])
-        plt.plot(X, final_vector)
-        plt.title("counter = " + str(counter) + " final MUSIC plot")
-        plt.show()
+    # if counter == COUNTER:
+    #     print(final_vector[80:90])
+    #     plt.plot(X, final_vector)
+    #     plt.title("counter = " + str(counter) + " final MUSIC plot")
+    #     plt.show()
 
     try:
         indexes = (signal.argrelmax(np.asarray(final_vector), mode='warp')[0])
         angles = []
         for index in indexes:
             angles.append((index * ANGLE_OF_DIRECTIONS, final_vector[index]))
-        print(angles)
+        # print(angles)
         return angles, peaks[2]
     except IndexError:
-        print("[]")
+        # print("[]")
         return [], peaks[2]
 
 def find_peaks(raw_signal, avg, counter):
@@ -178,9 +178,9 @@ def find_peaks(raw_signal, avg, counter):
     # plt.close()
     result = signal.find_peaks(db_of_yf, max(25,avg))
 
-    if counter == COUNTER:
-        plt.plot(xf, db_of_yf)
-        plt.show()
+    # if counter == COUNTER:
+    #     plt.plot(xf, db_of_yf)
+    #     plt.show()
     real_db = result[1]['peak_heights']
     # print(result)
     if real_db.size == 0:

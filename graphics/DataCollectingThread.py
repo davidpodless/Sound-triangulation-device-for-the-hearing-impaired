@@ -5,8 +5,8 @@ import util
 def add_angle_and_time(angle_and_amp):
 	DataCollectingThread.angle_list.append(angle_and_amp)
 	DataCollectingThread.time_list.append(time.time())
-	print('DataCollectingThread.angle_list')
-	print(DataCollectingThread.angle_list)
+	# print('DataCollectingThread.angle_list')
+	# print(DataCollectingThread.angle_list)
 
 
 def add_angles():
@@ -36,7 +36,7 @@ class DataCollectingThread(threading.Thread):
 		while True:
 			add_angles()
 			self.check_angles_and_time()
-			# time.sleep(1 / 30)
+			time.sleep(1 / 60)
 
 	def check_angles_and_time(self):
 
