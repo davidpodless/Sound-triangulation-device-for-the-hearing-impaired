@@ -38,8 +38,9 @@ def extract_data(frames, results):
                 list_of_data_sent_to_calc.append(ch_data)
             angle, db = calc_angle(list_of_data_sent_to_calc,avg_db,
                                    thread_counter)
-            # avg_db -= (avg_db / LEN_OF_AVG)
-            # avg_db += (db / LEN_OF_AVG)
+            avg_db -= (avg_db / LEN_OF_AVG)
+            avg_db += (db / LEN_OF_AVG)
+            print("db = " + str(avg_db))
             results.appendleft(angle)
             thread_counter += 1
             # if thread_counter == COUNTER+1:
@@ -118,9 +119,9 @@ def calc_angle(lst_of_data, avg_db, counter):
     # print("\n" + str(counter) + "\n-------------------")
     for index, fft_vector in enumerate(separated_vector_for_music):
         freq = xf[location_of_real_peaks_in_data[index]]
-        if counter == COUNTER:
-            print(freq)
-        if freq <= 200 or freq >= 1000:
+        # if counter == COUNTER:
+        print(freq)
+        if freq <= 150 or freq >= 1000:
             continue
         db = 20 * scipy.log10(2.0 / n * np.abs(fft_vector))
         result = MUSIC_algorithm(fft_vector, freq, counter)
@@ -143,9 +144,10 @@ def calc_angle(lst_of_data, avg_db, counter):
         angles = []
         for index in indexes:
             angles.append((index * ANGLE_OF_DIRECTIONS, final_vector[index]))
-        # print(angles)
+        print(angles)
         return angles, peaks[2]
     except IndexError:
+        print("[]")
         return [], peaks[2]
 
 def find_peaks(raw_signal, avg, counter):
@@ -174,7 +176,7 @@ def find_peaks(raw_signal, avg, counter):
     # plt.plot(xf,db_of_yf)
     # plt.show()
     # plt.close()
-    result = signal.find_peaks(db_of_yf, max(30,avg))
+    result = signal.find_peaks(db_of_yf, max(25,avg))
 
     if counter == COUNTER:
         plt.plot(xf, db_of_yf)
@@ -223,14 +225,14 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
     # determine how many signals, according to eigenvalues
     # large eigenvalue mean signal, the noise should be the eigenvalue 0.
     # TODO maybe try to do M = 3 and that it?
-    M = 0
+    M = 1
     # print(np.abs(eigenvalues))
-    for i in eigenvalues:
+    #for i in eigenvalues:
         # TODO - choose threshold for the eigenvalues, use records for that.
-        if np.abs(i) > THRESHOLD_FOR_EIGENVALUES:
-            M += 1
-    if M >= 4:
-        return "Too much signals to process"
+    #    if np.abs(i) > THRESHOLD_FOR_EIGENVALUES:
+    #        M += 1
+    #if M >= 4:
+    #    return "Too much signals to process"
     # M = 2
     find_num_of_signals(np.abs(eigenvalues))
     #TODO - add permotations? meaning - try "what if" for each eigenvector is not 0
