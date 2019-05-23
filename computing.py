@@ -145,7 +145,7 @@ def calc_angle(lst_of_data, avg_db, counter):
         angles = []
         for index in indexes:
             angles.append((index * ANGLE_OF_DIRECTIONS, final_vector[index]))
-        # print(angles)
+        print(angles)
         return angles, peaks[2]
     except IndexError:
         # print("[]")

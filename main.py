@@ -1,7 +1,7 @@
 import threading
 from collections import deque
 import wave
-import recording
+# import recording
 import computing
 from systemConstants import *
 import graphics.GraphicRunnerThread as GraphicRunnerThread
@@ -50,19 +50,19 @@ def fake_record(files, frames):
 						lst.clear()
 				else:
 					break
-				time.sleep(0.05)
+				time.sleep(0.005)
 
 
 def main():
 	frames = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
 	results = deque(RECORD_BUFFER_MAX*[0], RECORD_BUFFER_MAX)
-	recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
+	# recordingThread = threading.Thread(group=None, target=recording.record, name="recording thread", args=(frames, results))
 	computingThread = threading.Thread(group=None, target=computing.extract_data, name="compute thread", args=(frames, results))
-	# fakeRecordingThread = threading.Thread(group=None, target=fake_record, name="fake recording thread", args=(getFileslist(), frames))
+	fakeRecordingThread = threading.Thread(group=None, target=fake_record, name="fake recording thread", args=(getFileslist(), frames))
 
-	# fakeRecordingThread.start()
+	fakeRecordingThread.start()
 
-	recordingThread.start()
+	# recordingThread.start()
 	computingThread.start()
 
 	dataHandleThread = DataCollectingThread.DataCollectingThread([results], name='Data thread')
