@@ -21,7 +21,7 @@ def extract_data(frames, results):
     """
     is_still_empty = False
     thread_counter = 0
-    avg_db = 20
+    avg_db = 30
     while True:
         next_sample = 0
         while type(next_sample) == int and frames:
@@ -40,6 +40,7 @@ def extract_data(frames, results):
                                    thread_counter)
             avg_db -= (avg_db / LEN_OF_AVG)
             avg_db += (db / LEN_OF_AVG)
+            avg_db = max(avg_db, 30)
             print("db = " + str(avg_db))
             results.appendleft(angle)
             thread_counter += 1
