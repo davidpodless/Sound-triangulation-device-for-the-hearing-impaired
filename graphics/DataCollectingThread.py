@@ -41,7 +41,10 @@ class DataCollectingThread(threading.Thread):
 	def check_angles_and_time(self):
 
 		for prev_time_ind in range(len(DataCollectingThread.time_list)):
-			prev_time = DataCollectingThread.time_list[prev_time_ind]
+			try:
+				prev_time = DataCollectingThread.time_list[prev_time_ind]
+			except IndexError:
+				break
 			gaussian = util.build_gaussian(1.5, 1)
 			time_passed = time.time() - prev_time
 			if time_passed > 3:

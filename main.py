@@ -21,7 +21,7 @@ newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./wav_files') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./wav_files/48k_350_45_v2.wav']
+	return ['./wav_files/48k_135_truck_horn.wav']
 
 
 def fake_record(files, frames):
@@ -50,7 +50,7 @@ def fake_record(files, frames):
 						lst.clear()
 				else:
 					break
-				time.sleep(0.3)
+				time.sleep(0.05)
 
 
 def main():
@@ -67,6 +67,7 @@ def main():
 
 	dataHandleThread = DataCollectingThread.DataCollectingThread([results], name='Data thread')
 	dataHandleThread.start()
+
 	# graphicThread = GraphicRunnerThread.GraphicRunnerThread(name='Graphic thread')
 	# graphicThread.start()
 	graphicThread = SoundCircle.SoundCircleApp()

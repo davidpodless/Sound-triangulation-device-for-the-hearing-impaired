@@ -8,7 +8,7 @@ from systemConstants import *
 from cmath import rect
 import statistics
 
-COUNTER = 900
+COUNTER = 9000
 # TODO - check value for 2 signals, should work, verify that.
 # TODO 2 - dealing with complex signals (different frequencies in the same NUM_OF_SNAPSHOT) - seem like it should work NEED TESTING!!!
 
@@ -40,18 +40,13 @@ def extract_data(frames, results):
                                    thread_counter)
             # avg_db -= (avg_db / LEN_OF_AVG)
             # avg_db += (db / LEN_OF_AVG)
-            # print(avg_db)
             results.appendleft(angle)
             thread_counter += 1
             # if thread_counter == COUNTER+1:
             #     # exit()
             #     continue
         else:
-            if is_still_empty:
-                break
-            else:
-                is_still_empty = True
-                time.sleep(0.005)
+            continue
 
 
 def calc_angle(lst_of_data, avg_db, counter):
@@ -125,7 +120,7 @@ def calc_angle(lst_of_data, avg_db, counter):
         freq = xf[location_of_real_peaks_in_data[index]]
         if counter == COUNTER:
             print(freq)
-        if freq <= 500 or freq >= 1500:
+        if freq <= 200 or freq >= 1000:
             continue
         db = 20 * scipy.log10(2.0 / n * np.abs(fft_vector))
         result = MUSIC_algorithm(fft_vector, freq, counter)
@@ -185,6 +180,7 @@ def find_peaks(raw_signal, avg, counter):
         plt.plot(xf, db_of_yf)
         plt.show()
     real_db = result[1]['peak_heights']
+    # print(result)
     if real_db.size == 0:
         real_db = np.append(real_db, [0])
     return [xf[result[0]], result[0], real_db.mean()]
@@ -235,7 +231,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
             M += 1
     if M >= 4:
         return "Too much signals to process"
-    # M = 3
+    # M = 2
     find_num_of_signals(np.abs(eigenvalues))
     #TODO - add permotations? meaning - try "what if" for each eigenvector is not 0
     # M = find_num_of_signals(np.abs(eigenvalues))
