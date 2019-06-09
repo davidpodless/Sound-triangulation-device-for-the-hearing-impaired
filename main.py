@@ -1,7 +1,7 @@
 import threading
 from collections import deque
 import wave
-# import recording
+import recording
 import computing
 from systemConstants import *
 import graphics.GraphicRunnerThread as GraphicRunnerThread
