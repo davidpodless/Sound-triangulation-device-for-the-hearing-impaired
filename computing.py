@@ -9,8 +9,6 @@ from cmath import rect
 import statistics
 
 COUNTER = 9000
-# TODO - check value for 2 signals, should work, verify that.
-# TODO 2 - dealing with complex signals (different frequencies in the same NUM_OF_SNAPSHOT) - seem like it should work NEED TESTING!!!
 
 
 def extract_data(frames, results):
@@ -37,6 +35,7 @@ def extract_data(frames, results):
                     ch_data[i-1] = (np_data[i::6])
                 list_of_data_sent_to_calc.append(ch_data)
             angle, db = calc_angle(list_of_data_sent_to_calc, avg_db, thread_counter)
+            print(angle)
             # avg_db -= (avg_db / LEN_OF_AVG)
             # avg_db += (db / LEN_OF_AVG)
             results.appendleft(angle)
@@ -99,8 +98,7 @@ def calc_angle(lst_of_data, avg_db, counter):
 
     for index, fft_vector in enumerate(separated_vector_for_music):
         freq = xf[location_of_real_peaks_in_data[index]]
-        if not ((freq >= 580 and freq <= 620) or (freq >= 780 and freq <= 820)):
-            print(freq)
+        if not is_correct_frequency(freq):
             continue
         result = MUSIC_algorithm(fft_vector, freq, counter)
         results.append(result)
@@ -132,7 +130,7 @@ def find_peaks(raw_signal, avg, counter):
     abs_of_yf = np.abs(yf[:n // 2])
     magnitude_of_frequency = 2.0 / n * abs_of_yf
     db_of_yf = 20 * scipy.log10(magnitude_of_frequency)
-    result = signal.find_peaks(db_of_yf, max(30,avg))
+    result = signal.find_peaks(db_of_yf, max(THRESHOLD_FOR_FIND_PEAKS,avg))
 
     real_db = result[1]['peak_heights']
     # print(result)
@@ -177,18 +175,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 
     # determine how many signals, according to eigenvalues
     # large eigenvalue mean signal, the noise should be the eigenvalue 0.
-    # TODO maybe try to do M = 3 and that it?
     M = 1
-    # print(np.abs(eigenvalues))
-    # for i in eigenvalues:
-    #     if np.abs(i) > THRESHOLD_FOR_EIGENVALUES:
-    #         M += 1
-    # if M >= 4:
-    #     return "Too much signals to process"
-    # M = 2
-    find_num_of_signals(np.abs(eigenvalues))
-    #TODO - add permotations? meaning - try "what if" for each eigenvector is not 0
-    # M = find_num_of_signals(np.abs(eigenvalues))
     P_MUSIC_phi = []
     for index, angle in enumerate(s_phi):
         result = 0
@@ -197,27 +184,6 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
         P_MUSIC_phi.append(1 / result)
 
     return np.asarray(P_MUSIC_phi)
-    #
-    # final_angle = (signal.argrelmax(np.asarray(P_MUSIC_phi), mode='warp')[0])
-    #
-    # MUSIC_results = []
-    # for j in range(M):
-    #     max = -10
-    #     for i in final_angle:
-    #         if i in MUSIC_results:
-    #             continue
-    #         else:
-    #             if P_MUSIC_phi[i] > THRESHOLD_FOR_MUSIC_PEAK and P_MUSIC_phi[i] > max:
-    #                 max = i
-    #     if max > -10:
-    #         MUSIC_results.append(max)
-    # for i in range(len(MUSIC_results)):
-    #     MUSIC_results[i] *= ANGLE_OF_DIRECTIONS
-    #
-    # if len(MUSIC_results) == 1:
-    #     MUSIC_results = MUSIC_results[0]
-    #
-    # return MUSIC_results
 
 
 def potential_phi(freq):
@@ -230,7 +196,10 @@ def potential_phi(freq):
     for i in range(NUM_OF_DIRECTIONS):
         results = []
         rads = math.radians(i*ANGLE_OF_DIRECTIONS)
-        delta_x = [0, D * math.cos(rads), math.sqrt(2) * D * math.cos((PI/4) - rads), D * math.sin(rads)]
+        delta_x = [0,
+                   D * math.cos(rads),
+                   math.sqrt(2) * D * math.cos((PI/4) - rads),
+                   D * math.sin(rads)]
         r = 1
         phase = 2*PI*freq / SPEED_OF_SOUND
         for dx in delta_x:
@@ -277,25 +246,6 @@ def sum_vectors(vectors):
     return np.sum(vectors, axis=0)
 
 
-def find_num_of_signals(eigenvalues): # todo - ask orr about this
-    # try to use ration between eigenvalues
-    N = len(eigenvalues)
-    eigenvalues = np.flip(eigenvalues, axis=0)
-    ratio = [eigenvalues[0]/eigenvalues[1], eigenvalues[1]/eigenvalues[2], eigenvalues[2]/eigenvalues[3]]
-    return np.argmax(ratio) + 1
-    # exit()
-    MDL = []
-    AIC = []
-    for d in range(N-1):
-        # print(np.abs(eigenvalues[d:]))
-        L = -NUM_OF_SNAPSHOTS_FOR_MUSIC * (NUM_OF_MICS - 1) * np.log10(gmean(eigenvalues[d:]) / np.mean(eigenvalues[d:]))
-        MDL.append(L + 0.5*d*(2*NUM_OF_MICS - d)*np.log10(NUM_OF_SNAPSHOTS_FOR_MUSIC))
-        AIC.append(L + d*(2*NUM_OF_MICS - d))
-        # print(L)
-    index = np.real(MDL).argmin()
-    # print(MDL)
-    # print(AIC)
-    # print(len(MDL))
-    # print(index)
-    # exit()
-    return index
+def is_correct_frequency(frequency):
+    return np.abs(frequency - FREQUENCY1) < FREQUENCY_BOUNDARY or \
+           np.abs(frequency - FREQUENCY2) < FREQUENCY_BOUNDARY
