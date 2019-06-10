@@ -21,7 +21,7 @@ newNoise = 0
 
 def getFileslist():
 	# return [f for f in listdir('./wav_files') if isfile(join('./', f)) and f.endswith(".wav")]
-	return ['./wav_files/48k_135_truck_horn.wav']
+	return ['./wav_files/48k_600_45_output.wav']
 
 
 def fake_record(files, frames):
@@ -50,7 +50,7 @@ def fake_record(files, frames):
 						lst.clear()
 				else:
 					break
-				time.sleep(0.05)
+				time.sleep(0.001)
 
 
 def main():
@@ -75,7 +75,6 @@ def main():
 
 	computingThread.join()
 
-	points_in_data = []
 
 if __name__ == '__main__':
 	main()
