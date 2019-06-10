@@ -35,6 +35,9 @@ class SoundCircle(Widget):
 			Clock.schedule_interval(self.update, 1 / 60)
 
 	def update(self, *args):
+		Window.fullscreen = True
+
+		self.circle_center = Window.size[0] / 2, Window.size[1] / 2
 		self.line.points = SoundCircle.original_circle[:]
 
 		angle_list = DataCollectingThread.DataCollectingThread.angle_list
