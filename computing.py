@@ -1,14 +1,8 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import scipy.fftpack
 from scipy import signal
-from scipy.stats.mstats import gmean
-import time
 from systemConstants import *
 from cmath import rect
-import statistics
-
-COUNTER = 9000
 
 
 def extract_data(frames, results):
