@@ -6,6 +6,8 @@ from kivy.config import Config
 class GraphicRunnerThread(threading.Thread):
 	def run(self):
 		Config.set('graphics', 'fullscreen', 'auto')
-		Window.fullscreen = True
+		Config.set('graphics', 'window_state', 'maximized')
+		Config.write()
+
 		self.graphicThread = SoundCircle.SoundCircleApp()
 		self.graphicThread.run()
