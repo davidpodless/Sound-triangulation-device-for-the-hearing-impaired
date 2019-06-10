@@ -47,6 +47,7 @@ class DataCollectingThread(threading.Thread):
 			if time_passed > 3:
 				del DataCollectingThread.time_list[prev_time_ind]
 				del DataCollectingThread.angle_list[prev_time_ind]
+				prev_time_ind += -1
 			else:
 				DataCollectingThread.angle_list[prev_time_ind] = \
 					(DataCollectingThread.angle_list[prev_time_ind][0],
