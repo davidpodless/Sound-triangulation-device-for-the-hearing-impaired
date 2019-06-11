@@ -145,7 +145,7 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 
     """ In this function, N - number of mics, M number of signals"""
     nprect = np.vectorize(rect)
-
+    print("freq: ", freq)
 
     s_phi = potential_phi(freq)
 
