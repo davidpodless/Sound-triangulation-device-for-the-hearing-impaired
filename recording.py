@@ -10,7 +10,7 @@ import binascii
 import main
 from systemConstants import *
 from collections import deque
-from pixel_ring.pixel_ring import pixel_ring
+from pixel_ring import pixel_ring
 
 
 RESPEAKER_CHANNELS = 6  # change base on firmwares, 1_channel_firmware.bin as 1 or 6_channels_firmware.bin as 6
