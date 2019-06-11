@@ -151,14 +151,14 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
     R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=np.complex64)
 
     assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
-
+    phase = 2*PI*freq / SPEED_OF_SOUND
     # MUSIC algorithm
     for vector in vector_of_signals:
         angles = np.angle(vector)
         norm = angles[0]
         for i in range(len(angles)):
             angles[i] -= norm
-        print(angles[3]/angles[1])
+        print((angles[3] / phase)/(angles[1] / phase))
         vector = nprect(1, np.angle(vector))
         R = sum_of_matrix(R, matrix_from_vector(vector))
     R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
