@@ -148,17 +148,49 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 
 
     s_phi = potential_phi(freq)
+
+    # MLE:
+    sigma = []
+    angle = (np.angle(vector_of_signals) % MOD_2_PI)
+    for snapshot in angle:
+        norm = snapshot[0]
+        for i, mic in enumerate(snapshot):
+            snapshot[i] -= norm
+    # print(angle)
+    for i, mic in enumerate(angle.T):
+        xcos = []
+        ysin = []
+        for point in mic:
+            # if np.abs(point)> max_for_mics[i] and (MOD_2_PI - np.abs(point) > max_for_mics[i]):
+            # 	print(i, point, " this point was deleted")
+            # 	continue
+            xcos.append(math.cos(point))
+            ysin.append(math.sin(point))
+        x = np.mean(xcos)
+        y = np.mean(ysin)
+        sigma.append(math.atan2(y, x))
+    # print(angle, "\n", sigma, "\n\n\n\n")
+    phase = 2 * PI * freq / SPEED_OF_SOUND
+    print((sigma[3] / phase) / (sigma[1] / phase))
+    # print(sigma)
+    MLE_complex = nprect(1, sigma)
+    results = []
+    for phi in s_phi:
+        results.append(np.vdot(phi, MLE_complex))
+    MLE = np.argmax(np.abs(results)) * ANGLE_OF_DIRECTIONS
+    # print("MLE: ", MLE)
+    # END MLE
     R = np.zeros([NUM_OF_MICS,NUM_OF_MICS], dtype=np.complex64)
 
     assert len(vector_of_signals) == NUM_OF_SNAPSHOTS_FOR_MUSIC
-    phase = 2*PI*freq / SPEED_OF_SOUND
+
     # MUSIC algorithm
     for vector in vector_of_signals:
         angles = np.angle(vector)
         norm = angles[0]
         for i in range(len(angles)):
             angles[i] -= norm
-        print((angles[3] / phase)/(angles[1] / phase))
+
         vector = nprect(1, np.angle(vector))
         R = sum_of_matrix(R, matrix_from_vector(vector))
     R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
