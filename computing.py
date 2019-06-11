@@ -29,7 +29,7 @@ def extract_data(frames, results):
                     ch_data[i-1] = (np_data[i::6])
                 list_of_data_sent_to_calc.append(ch_data)
             angle, db = calc_angle(list_of_data_sent_to_calc, avg_db, thread_counter)
-            print(angle)
+            #print(angle)
             # avg_db -= (avg_db / LEN_OF_AVG)
             # avg_db += (db / LEN_OF_AVG)
             results.appendleft(angle)
@@ -104,10 +104,10 @@ def calc_angle(lst_of_data, avg_db, counter):
         angles = []
         for index in indexes:
             angles.append((index * ANGLE_OF_DIRECTIONS, final_vector[index]))
-        print(angles)
+        #print(angles)
         return angles, peaks[2]
     except IndexError:
-        print([])
+        #print([])
         return [], peaks[2]
 
 
@@ -154,6 +154,11 @@ def MUSIC_algorithm(vector_of_signals, freq, counter):
 
     # MUSIC algorithm
     for vector in vector_of_signals:
+        angles = np.angle(vector)
+        norm = angles[0]
+        for i in range(len(angles)):
+            angles[i] -= norm
+        print(angles[3]/angles[1])
         vector = nprect(1, np.angle(vector))
         R = sum_of_matrix(R, matrix_from_vector(vector))
     R /= NUM_OF_SNAPSHOTS_FOR_MUSIC
